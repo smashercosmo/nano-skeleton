@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    /**
+     * "preserve" assumes,
+     * that "moduleResolution" is "bundler"
+     */
+    "module": "preserve",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "es2024",
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    "allowJs": true,
+    "checkJs": true,
+
+    /**
+     * All our apps and libraries are build with bundlers (usually Vite is used for apps and TsDown for libraries).
+     * The handle both transpilation, types generation and source maps creation. Because of that we don't need settings
+     * like "declaration", "declarationMap", "emitDeclarationOnly" and "sourcemap" and our TypeScript configs.
+     *
+     * But nothing depends on the node file. Making the node project composite project forces it to generate .d.ts files
+     * which slows down the build and provides no value. So in these cases we should omit all these three flags.
+     * A non-composite project can still safely reference a composite project.
+     */
+    "noEmit": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+
+    /**
+     * "strict" setting is now "true" by default.
+     */
+    "allowArbitraryExtensions": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "erasableSyntaxOnly": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}

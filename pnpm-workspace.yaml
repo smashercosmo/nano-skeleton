@@ -1,0 +1,38 @@
+packages:
+  - apps/*
+  - packages/*
+  - internal/*
+
+hoist: false
+saveExact: true
+catalogMode: strict
+
+tasks:
+  build:
+    dependsOn: ["^build"]
+    outputs: ["dist/**"]
+  dev:
+    cache: false
+  preview:
+    dependsOn: ["^build"]
+
+catalogs:
+  ui:
+    react: 19.2.8
+    react-dom: 19.2.8
+  types:
+    "@types/node": 26.6.5
+    "@types/react": 19.2.18
+    "@types/react-dom": 19.2.7
+  dev:
+    typescript: 7.0.2
+    bumpp: 12.3.0
+    vite: 8.2.2
+    "@vitejs/plugin-react": 6.1.1
+    tsdown: 0.23.1
+    "@rolldown/plugin-babel": 0.2.3
+    babel-plugin-react-compiler: 1.0.0
+    oxfmt: 0.66.0
+    turbo: 2.10.12
+    "@tsdown/css": 0.23.1
+    rolldown: 1.2.14

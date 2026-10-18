@@ -1,0 +1,30 @@
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(oklch(100% 0 0), oklch(20% 0.009 264));
+  --fg: light-dark(oklch(23.7% 0.011 254), oklch(93% 0.005 258));
+  --muted: light-dark(oklch(50% 0.022 256), oklch(71.5% 0.021 253));
+  --border: light-dark(oklch(87.6% 0.012 248), oklch(31.9% 0.017 256));
+}
+
+body {
+  font:
+    16px/1.5 system-ui,
+    sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  margin: 0;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+main {
+  max-width: 40rem;
+  margin: 2rem auto;
+  padding: 0 1.25rem;
+}

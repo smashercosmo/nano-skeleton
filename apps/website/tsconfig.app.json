@@ -1,0 +1,10 @@
+{
+  "extends": ["@internal/tsconfig/dom", "@internal/tsconfig/composite"],
+  "compilerOptions": {
+    "outDir": "declarations",
+    "tsBuildInfoFile": "node_modules/tsconfig.app.tsbuildinfo",
+    "jsx": "react-jsx",
+    "types": ["vite/client"]
+  },
+  "include": ["src"]
+}

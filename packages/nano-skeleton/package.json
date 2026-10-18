@@ -1,0 +1,50 @@
+{
+  "name": "nano-skeleton",
+  "version": "0.0.0",
+  "description": "The perfect skeleton component",
+  "homepage": "https://github.com/smashercosmo/nano-skeleton#readme",
+  "bugs": {
+    "url": "https://github.com/smashercosmo/nano-skeleton/issues"
+  },
+  "license": "MIT",
+  "author": "Vladislav Shkodin <smashercosmo@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smashercosmo/nano-skeleton.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "imports": {
+    "#root/*": "./src/*"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "lint:types": "tsc -b"
+  },
+  "devDependencies": {
+    "@internal/tsconfig": "workspace:*",
+    "@types/node": "catalog:types",
+    "bumpp": "catalog:dev"
+  },
+  "dependencies": {
+    "@tsdown/css": "catalog:dev",
+    "rolldown": "catalog:dev",
+    "tsdown": "catalog:dev"
+  },
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": "./dist/index.js",
+      "./package.json": "./package.json"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    /**
+     * Usually in a repo that uses project references, node files (like tests, for example) depend on the app.
+     * Example: { "references": [{ "path": "./tsconfig.json" }], include: ["./tests"] }
+     *
+     * But nothing depends on the node files. Making the node project composite project forces it to generate .d.ts files
+     * which slows down the build and provides no value. So in these cases we should omit all these three flags.
+     * A non-composite project can still safely reference a composite project.
+     */
+    "noEmit": false,
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true
+    /**
+     * As we use TypeScript just as an analyzer and declaration generator,
+     * we specify the output directory just for declarations,
+     * and js files, transpiled by the bundler are emitted in the bundler's output directory (usually `dist`).
+     *
+     * Every `composite` project should have a unique output directory for declarations,
+     * which should be added to .gitignore.
+     *
+     * "outDir": "./unique-declarations-folder-name"
+     */
+  }
+}

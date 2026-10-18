@@ -1,0 +1,27 @@
+{
+  "name": "root",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "preview": "pnpm -r preview",
+    "format": "oxfmt",
+    "lint:types": "pnpm -r lint:types",
+    "update:deps": "pnpm up -r --latest --interactive"
+  },
+  "devDependencies": {
+    "@typescript/native": "npm:typescript@7.0.2",
+    "oxfmt": "catalog:dev",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vite": "catalog:dev"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=26.0.0",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.11.2"
+}

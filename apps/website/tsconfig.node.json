@@ -1,0 +1,14 @@
+{
+  "extends": "@internal/tsconfig/node",
+  "compilerOptions": {
+    "tsBuildInfoFile": "node_modules/tsconfig.node.tsbuildinfo",
+    "types": ["node"],
+    "lib": ["es2022"]
+  },
+  "include": ["vite.config.ts"],
+  "references": [
+    {
+      "path": "tsconfig.app.json"
+    }
+  ]
+}

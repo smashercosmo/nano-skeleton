@@ -1,0 +1,19 @@
+.root {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.loading-state-toggler {
+  all: initial;
+  font: inherit;
+  color: inherit;
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  padding-inline: 0.25rem;
+  padding-block: 0.15rem;
+  font-size: 0.6rem;
+  line-height: 1;
+  cursor: pointer;
+}

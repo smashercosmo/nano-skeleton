@@ -1,0 +1,30 @@
+{
+  "name": "website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint:types": "tsc -b"
+  },
+  "imports": {
+    "#root/*": "./src/*",
+    "#components/*": "./src/components/*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:types",
+    "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types",
+    "@internal/tsconfig": "workspace:*",
+    "@rolldown/plugin-babel": "catalog:dev",
+    "@vitejs/plugin-react": "catalog:dev",
+    "babel-plugin-react-compiler": "catalog:dev",
+    "vite": "catalog:dev"
+  },
+  "dependencies": {
+    "react": "catalog:ui",
+    "react-dom": "catalog:ui",
+    "nano-skeleton": "workspace:*"
+  }
+}

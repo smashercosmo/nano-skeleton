@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Skeleton component examples</title>
+    <meta name="color-scheme" content="light dark" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: light-dark(oklch(100% 0 0), oklch(20% 0.009 264));
+        --fg: light-dark(oklch(23.7% 0.011 254), oklch(93% 0.005 258));
+        --muted: light-dark(oklch(50% 0.022 256), oklch(71.5% 0.021 253));
+        --border: light-dark(oklch(87.6% 0.012 248), oklch(31.9% 0.017 256));
+      }
+      :root:has(.color-theme-switcher [name="theme"][value="light"]:checked) {
+        color-scheme: light;
+      }
+      :root:has(.color-theme-switcher [name="theme"][value="dark"]:checked) {
+        color-scheme: dark;
+      }
+
+      body {
+        font:
+          16px/1.5 system-ui,
+          sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        margin: 0;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 0.75rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .header-left {
+        display: flex;
+        gap: 1rem;
+        align-items: baseline;
+      }
+
+      .color-theme-switcher {
+        all: initial;
+        font: inherit;
+        color: inherit;
+      }
+
+      main {
+        max-width: 40rem;
+        margin: 2rem auto;
+        padding: 0 1.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div id="header-left" class="header-left"></div>
+      <fieldset class="color-theme-switcher" aria-label="Color theme">
+        <label><input type="radio" name="theme" value="auto" /> Auto</label>
+        <label><input type="radio" name="theme" value="light" /> Light</label>
+        <label><input type="radio" name="theme" value="dark" /> Dark</label>
+      </fieldset>
+      <script>
+        const COLOR_SCHEME_STORAGE_KEY = "__color_scheme__";
+
+        function updateColorThemeInStorage(theme) {
+          let value = [`light`, `dark`].includes(theme) ? theme : `auto`;
+          try {
+            localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, value);
+          } catch {
+            localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, value);
+          }
+        }
+
+        function getColorThemeFromStorage() {
+          try {
+            const theme = localStorage.getItem(COLOR_SCHEME_STORAGE_KEY);
+            return theme === "light" || theme === "dark" ? theme : "auto";
+          } catch {
+            return "auto";
+          }
+        }
+
+        /**
+         * Checks which radio-button matches the stored value
+         * and marks it as checked
+         */
+        function setColorThemeSwitcherValue(theme) {
+          document
+            .querySelectorAll(`.color-theme-switcher input`)
+            .forEach((input) => {
+              if (input.value === theme) input.setAttribute("checked", true);
+              else input.removeAttribute("checked");
+            });
+        }
+
+        /**
+         * Updates value in storage when user switches
+         * theme value on the page
+         */
+        document
+          .querySelector(`.color-theme-switcher`)
+          ?.addEventListener("change", (event) =>
+            updateColorThemeInStorage(event.target?.value?.trim()),
+          );
+
+        /**
+         * The theme or loading state were changed in a different tab. The `storage` event only
+         * fires in the OTHER tabs, the data there has to be updated by hand.
+         */
+        window.addEventListener("storage", (event) => {
+          if (
+            event.key === COLOR_SCHEME_STORAGE_KEY &&
+            ["light", "dark", "auto"].includes(event.newValue)
+          ) {
+            setColorThemeSwitcherValue(event.newValue);
+          }
+        });
+
+        /**
+         * The system theme changed while the app is open: the system wins.
+         * Drop any pinned Light/Dark and go back to Auto.
+         */
+        const media = matchMedia("(prefers-color-scheme: dark)");
+        media.addEventListener("change", () => {
+          updateColorThemeInStorage("auto");
+          setColorThemeSwitcherValue("auto");
+        });
+
+        /** Initial data sync */
+        const colorThemeValueFromRoot = getComputedStyle(
+          document.querySelector(":root"),
+        )["color-scheme"]?.trim();
+        const defaultColorValueFromStorage = getColorThemeFromStorage();
+        const defaultColorValue = ["light", "dark"].includes(
+          defaultColorValueFromStorage,
+        )
+          ? defaultColorValueFromStorage
+          : ["light", "dark"].includes(colorThemeValueFromRoot)
+            ? colorThemeValueFromRoot
+            : "auto";
+        setColorThemeSwitcherValue(defaultColorValue);
+      </script>
+    </header>
+
+    <main id="root"></main>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,82 @@
+:scope {
+  --nano-skeleton-animation: inherit;
+  --nano-skeleton-background-image: inherit;
+  --nano-skeleton-background-size: inherit;
+  --nano-skeleton-text-border-radius: inherit;
+
+  --nano-skeleton-text-border-radius-default: 0.375rem;
+  --nano-skeleton-animation-default: shimmer 2s infinite ease-in-out;
+  --nano-skeleton-background-size-default: 300%;
+  --nano-skeleton-background-image-default: linear-gradient(
+    90deg,
+    light-dark(#e9e9e9, #2c2c2c) 33%,
+    light-dark(#fff, #393939),
+    light-dark(#e9e9e9, #2c2c2c) 66%
+  );
+}
+
+:scope:not([data-text]) {
+  display: contents;
+}
+
+/*
+ * Everything inside the root should disappear, but nothing jumps,
+ * as layout is intact.
+ */
+:scope[data-loading] > * :is(*, *:before, *:after) {
+  visibility: hidden !important;
+}
+
+/**
+ * Skeleton's content is just an inline text
+ */
+:scope[data-loading][data-text] {
+  display: inline;
+  border-radius: var(
+    --nano-skeleton-text-border-radius,
+    var(--nano-skeleton-text-border-radius-default)
+  );
+  box-decoration-break: clone;
+  text-box-edge: cap alphabetic;
+  text-box-trim: trim-both;
+  /**
+   * This ensures the ellipsis on truncated text is also hidden.
+   * -webkit-text-fill-color overrides any "color" property that is also set.
+   */
+  -webkit-text-fill-color: transparent;
+}
+
+:scope[data-loading] > :is(video, img):only-child {
+  content: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7") !important;
+}
+
+:scope[data-loading][data-text],
+:scope[data-loading]:not([data-text]) > * {
+  background-image: var(
+    --nano-skeleton-background-image,
+    var(--nano-skeleton-background-image-default)
+  ) !important;
+  background-size: var(
+    --nano-skeleton-background-size,
+    var(--nano-skeleton-background-size-default)
+  ) !important;
+}
+
+@media not (prefers-reduced-motion: reduce) {
+  :scope[data-loading][data-text],
+  :scope[data-loading]:not([data-text]) > * {
+    animation: var(
+      --nano-skeleton-animation,
+      var(--nano-skeleton-animation-default)
+    ) !important;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position-x: 100%;
+  }
+  to {
+    background-position-x: 0;
+  }
+}
