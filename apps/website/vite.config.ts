@@ -4,6 +4,8 @@ import { defaultClientConditions, defineConfig } from "vite";
 
 export default defineConfig((config) => {
   return {
+    /** GitHub Pages serves the site from /nano-skeleton/ */
+    base: config.command === "build" ? "/nano-skeleton/" : "/",
     resolve: {
       conditions: [
         ...defaultClientConditions,
