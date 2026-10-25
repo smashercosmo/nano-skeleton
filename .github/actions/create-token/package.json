@@ -1,0 +1,17 @@
+{
+  "name": "@internal/create-token",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint:types": "tsc -b"
+  },
+  "dependencies": {
+    "@actions/core": "catalog:actions",
+    "@actions/github": "catalog:actions",
+    "@octokit/auth-app": "catalog:actions"
+  },
+  "devDependencies": {
+    "@internal/tsconfig": "workspace:*",
+    "@types/node": "catalog:types"
+  }
+}

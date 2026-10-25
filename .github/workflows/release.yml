@@ -1,0 +1,141 @@
+name: Release
+
+# Every push to main does one of the following:
+# - pending change intents in .changeset/ → apply them with `pnpm version -r`
+#   and open (or update) a release PR with the bumped versions and changelogs
+# - the release PR was just merged (.changeset/ledger.yaml changed) → stage
+#   every package whose version isn't on npm yet and create a draft GitHub
+#   release for it from its CHANGELOG.md section. Approve the staged versions
+#   with `pnpm stage approve` (2FA), then publish the drafts, which creates
+#   the tags
+# - otherwise → nothing
+# Running it manually (workflow_dispatch) without pending intents always takes
+# the staging path, e.g. to retry a failed release
+#
+# Every job gets only the access it needs, so dependency code running during
+# install or build never shares a job with both npm and GitHub write access
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      action: ${{ steps.plan.outputs.action }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          # Lets the plan step compare HEAD with its parent
+          fetch-depth: 2
+
+      - id: plan
+        name: Decide what to do
+        run: |
+          if find .changeset -maxdepth 1 -name '*.md' ! -name README.md 2>/dev/null | grep -q .; then
+            echo "action=pr" >> "$GITHUB_OUTPUT"
+          elif [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || ! git diff --quiet HEAD^ HEAD -- .changeset/ledger.yaml; then
+            echo "action=stage" >> "$GITHUB_OUTPUT"
+          else
+            echo "action=none" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Pushes the release branch and opens the PR with the GitHub App token, so
+  # the PR triggers other workflows (GITHUB_TOKEN-created ones don't)
+  release-pr:
+    needs: plan
+    if: needs.plan.outputs.action == 'pr'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment: release
+    env:
+      # Environment variables are only exposed through the `vars` context
+      RELEASE_BRANCH_NAME: ${{ vars.RELEASE_BRANCH_NAME }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Installs pnpm from "packageManager" and Node from "devEngines.runtime"
+      # in package.json, then runs `pnpm install --frozen-lockfile`
+      - uses: pnpm/setup@v3
+        with:
+          cache: true
+          require-lockfile: true
+
+      # Runs after install, which installs the action's dependencies
+      - id: app-token
+        uses: ./.github/actions/create-token
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open or update release PR
+        uses: ./.github/actions/create-release-pr
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          app-slug: ${{ steps.app-token.outputs.app-slug }}
+
+  publish:
+    needs: plan
+    if: needs.plan.outputs.action == 'stage'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # npm trusted publishing (OIDC); pnpm adds provenance automatically
+      id-token: write
+    environment: release
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/setup@v3
+        with:
+          cache: true
+          require-lockfile: true
+
+      - name: Build packages
+        run: pnpm -r build
+
+      # Uploads to npm's staging area instead of the live registry. Skips
+      # private packages and versions already on the registry
+      - name: Stage packages on npm
+        run: pnpm stage publish -r
+
+  # Waits for publish, so drafts are only created for staged versions. Draft
+  # releases don't need to trigger other workflows, so GITHUB_TOKEN is enough
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Installs the action's dependencies
+      - uses: pnpm/setup@v3
+        with:
+          cache: true
+          require-lockfile: true
+
+      - name: Create draft GitHub releases
+        uses: ./.github/actions/create-github-release
+        with:
+          token: ${{ github.token }}
+          draft: true
