@@ -10,8 +10,29 @@ function isDocumentOrShadowRoot(
 }
 
 export class Skeleton extends HTMLElement {
+  static observedAttributes = ["interactive"];
+
+  #loading = false;
   #unsubscribe?: Unsubscribe | undefined;
   #observer = new MutationObserver(() => this.#update());
+
+  /** Keeps the content focusable and clickable while loading */
+  get interactive() {
+    return this.hasAttribute("interactive");
+  }
+
+  set interactive(value: boolean) {
+    this.toggleAttribute("interactive", Boolean(value));
+  }
+
+  attributeChangedCallback(
+    _name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ) {
+    if (oldValue === newValue) return;
+    this.#render(this.#loading);
+  }
 
   connectedCallback() {
     const root = this.getRootNode();
@@ -59,7 +80,8 @@ export class Skeleton extends HTMLElement {
   }
 
   #render(loading: boolean) {
-    this.toggleAttribute("inert", loading);
+    this.#loading = loading;
+    this.toggleAttribute("inert", loading && !this.interactive);
     this.toggleAttribute("data-loading", loading);
   }
 }

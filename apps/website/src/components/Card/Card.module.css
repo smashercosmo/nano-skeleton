@@ -56,6 +56,11 @@
   line-height: 1.65;
 }
 
+.link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 @container (max-width: 34rem) {
   .layout {
     flex-direction: column;
