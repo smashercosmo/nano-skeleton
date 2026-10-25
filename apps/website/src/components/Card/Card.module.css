@@ -57,11 +57,13 @@
 }
 
 .link {
-  text-decoration: underline 1px blue;
+  --link-color: light-dark(#0033cc, #809fff);
+  color: var(--link-color);
+  text-decoration: underline 1px var(--link-color);
 }
 
 .link:focus-visible {
-  outline: 2px solid currentColor;
+  outline: 2px solid var(--link-color);
   outline-offset: 2px;
   text-decoration: none;
 }
