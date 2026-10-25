@@ -7,3 +7,7 @@ nano-skeleton@0.2.0:
   intents:
     - quiet-links-stay
     - real-dodos-shop
+nano-skeleton@0.3.0:
+  dir: packages/nano-skeleton
+  intents:
+    - bright-words-bend

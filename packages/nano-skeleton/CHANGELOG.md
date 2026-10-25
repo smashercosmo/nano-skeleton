@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- feat: add `text` attribute to force text mode for text wrapped in elements
+
 ## 0.2.0
 
 ### Minor Changes
