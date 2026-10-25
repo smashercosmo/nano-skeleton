@@ -56,9 +56,14 @@
   line-height: 1.65;
 }
 
+.link {
+  text-decoration: underline 1px blue;
+}
+
 .link:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
+  text-decoration: none;
 }
 
 @container (max-width: 34rem) {
