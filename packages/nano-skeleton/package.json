@@ -1,6 +1,6 @@
 {
   "name": "nano-skeleton",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The perfect skeleton component",
   "homepage": "https://github.com/smashercosmo/nano-skeleton#readme",
   "bugs": {
@@ -26,8 +26,8 @@
   },
   "devDependencies": {
     "@internal/tsconfig": "workspace:*",
-    "@types/node": "catalog:types",
     "@tsdown/css": "catalog:dev",
+    "@types/node": "catalog:types",
     "bumpp": "catalog:dev",
     "rolldown": "catalog:dev",
     "tsdown": "catalog:dev"
