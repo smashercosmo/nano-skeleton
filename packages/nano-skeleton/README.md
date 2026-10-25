@@ -34,7 +34,8 @@ for a shimmering placeholder of the same shape.
 - **Media-aware.** `<img>` and `<video>` keep their box while their content is
   hidden.
 - **Accessible by default.** Loading content is made `inert`, so it can't be
-  focused or clicked, and the shimmer respects `prefers-reduced-motion`.
+  focused or clicked, the provider is marked `aria-busy`, and the shimmer
+  respects `prefers-reduced-motion`. Opt out per skeleton with `interactive`.
 - **Light and dark mode** out of the box via `light-dark()`.
 - **Works everywhere:** plain HTML, any framework, inside Shadow DOM.
 - **No dependencies**, styles included. No CSS file to import.
@@ -155,6 +156,38 @@ block while everything inside it is hidden.
 Because the placeholder is just the element's own box, make sure it has a size
 while loading, e.g. `width`/`height` attributes or `aspect-ratio` on images, or
 a fixed size on containers.
+
+The content is hidden with `opacity: 0`, so if an element inside has a
+`transition` on `opacity` (or `transition: all`), it fades in and out when
+`loading` changes instead of switching instantly.
+
+### Interactive skeletons
+
+By default, a loading skeleton is `inert`: its content can't be focused, clicked
+or reached by assistive technology. That's usually what you want, but sometimes
+the content is usable before the data arrives, e.g. a link whose `href` is
+already known, or a button that doesn't depend on the data.
+
+It matters most when content goes back into the loading state (a background
+refetch, pagination): an `inert` element that had focus loses it, and keyboard
+users are sent back to the top of the page.
+
+Add `interactive` to keep the content focusable and clickable while loading:
+
+```html
+<nano-skeleton-provider loading>
+  <nano-skeleton interactive>
+    <a href="/posts/42" class="card__link">
+      <span>Placeholder post title</span>
+    </a>
+  </nano-skeleton>
+</nano-skeleton-provider>
+```
+
+The placeholder looks the same, but the content stays in the tab order and
+keeps its accessible name. Make sure that name makes sense while loading, as screen reader users
+will hear it. The provider sets `aria-busy="true"` while loading to tell them
+the region is still updating.
 
 ## Examples
 
@@ -291,7 +324,12 @@ import type { DetailedHTMLProps, HTMLAttributes } from "react";
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
-      [COMPONENT_NAME]: DetailedHTMLProps<HTMLAttributes<Skeleton>, Skeleton>;
+      [COMPONENT_NAME]: DetailedHTMLProps<
+        HTMLAttributes<Skeleton>,
+        Skeleton
+      > & {
+        interactive?: boolean;
+      };
       [PROVIDER_NAME]: DetailedHTMLProps<
         HTMLAttributes<SkeletonProvider>,
         SkeletonProvider
@@ -316,16 +354,22 @@ Registers `<nano-skeleton-provider>` and `<nano-skeleton>` with
 | -------------------- | --------- | --------------------------------------------------------------------- |
 | `loading`            | `boolean` | When present/`true`, all descendant skeletons render as placeholders. |
 
+While loading, the provider is exposed to assistive technology as
+`aria-busy="true"`. An `aria-busy` attribute you set yourself takes precedence.
+
 ### `<nano-skeleton>`
 
-No attributes to set. It exposes these state attributes, which you can use as
-styling hooks:
+| Attribute / property | Type      | Description                                                                                                   |
+| -------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| `interactive`        | `boolean` | Keeps the content focusable and clickable while loading. See [Interactive skeletons](#interactive-skeletons). |
 
-| Attribute      | Set when                                                  |
-| -------------- | --------------------------------------------------------- |
-| `data-loading` | The nearest provider is loading.                          |
-| `data-text`    | The skeleton directly contains text (text mode).          |
-| `inert`        | The nearest provider is loading. Blocks focus and clicks. |
+It also exposes these state attributes, which you can use as styling hooks:
+
+| Attribute      | Set when                                                                              |
+| -------------- | ------------------------------------------------------------------------------------- |
+| `data-loading` | The nearest provider is loading.                                                      |
+| `data-text`    | The skeleton directly contains text (text mode).                                      |
+| `inert`        | The nearest provider is loading and `interactive` isn't set. Blocks focus and clicks. |
 
 ### Exports
 

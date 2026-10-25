@@ -34,6 +34,11 @@ export function App() {
                 eiusmod tempor incididunt ut labore et dolore magna aliqua.
               </>
             }
+            link={{
+              href: "https://github.com/smashercosmo/nano-skeleton",
+              label: "Interactive link: focusable while loading",
+              interactive: true,
+            }}
           />
         </nano-skeleton-provider>
         <nano-skeleton-provider loading={isLoading}>
@@ -60,6 +65,10 @@ export function App() {
                 labore et dolore magna aliqua.
               </>
             }
+            link={{
+              href: "https://github.com/smashercosmo/nano-skeleton",
+              label: "Default link: inert while loading",
+            }}
           />
         </nano-skeleton-provider>
       </div>

@@ -14,6 +14,12 @@ export type Props =
         | ReactElement<VideoHTMLAttributes<HTMLVideoElement>>;
       title?: ReactNode;
       description?: ReactNode;
+      link?: {
+        href: string;
+        label: ReactNode;
+        /** Keeps the link focusable while loading */
+        interactive?: boolean;
+      };
     }
   | undefined;
 
@@ -39,6 +45,15 @@ export function Card(props: Props) {
             <p className={styles["description"]}>
               <nano-skeleton>{props?.description}</nano-skeleton>
             </p>
+          )}
+          {props?.link && (
+            <div>
+              <nano-skeleton interactive={props.link.interactive ?? false}>
+                <a className={styles["link"]} href={props.link.href}>
+                  <span>{props.link.label}</span>
+                </a>
+              </nano-skeleton>
+            </div>
           )}
         </div>
       </div>

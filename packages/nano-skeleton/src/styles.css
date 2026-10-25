@@ -21,10 +21,11 @@
 
 /*
  * Everything inside the root should disappear, but nothing jumps,
- * as layout is intact.
+ * as layout is intact. Hidden visually only: focus and accessibility are
+ * handled by inert, so interactive skeletons keep both.
  */
-:scope[data-loading] > * :is(*, *:before, *:after) {
-  visibility: hidden !important;
+:scope[data-loading] > * > * {
+  opacity: 0 !important;
 }
 
 /**
@@ -37,8 +38,7 @@
     var(--nano-skeleton-text-border-radius-default)
   );
   box-decoration-break: clone;
-  text-box-edge: cap alphabetic;
-  text-box-trim: trim-both;
+  text-box: cap alphabetic;
   /**
    * This ensures the ellipsis on truncated text is also hidden.
    * -webkit-text-fill-color overrides any "color" property that is also set.

@@ -7,6 +7,7 @@ export class SkeletonProvider extends HTMLElement {
   static observedAttributes = ["loading"];
 
   #subscribers = new Set<LoadingCallback>();
+  #internals = this.attachInternals();
 
   constructor() {
     super();
@@ -49,6 +50,11 @@ export class SkeletonProvider extends HTMLElement {
     newValue: string | null,
   ) {
     if (oldValue === newValue) return;
+    /**
+     * Via internals, so an aria-busy attribute set by the user still takes
+     * precedence.
+     */
+    this.#internals.ariaBusy = this.loading ? "true" : null;
     for (const callback of this.#subscribers) callback(this.loading);
   }
 }
