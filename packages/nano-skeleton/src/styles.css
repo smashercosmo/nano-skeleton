@@ -44,6 +44,20 @@
    * -webkit-text-fill-color overrides any "color" property that is also set.
    */
   -webkit-text-fill-color: transparent;
+  /**
+   * Text might get visible when selected
+   */
+  user-select: none;
+}
+
+/**
+ * Children and grandchildren need to inherit these styles
+ * for consistent outlines
+ */
+:scope[data-loading][data-text] > *,
+:scope[data-loading][data-text] > * > * {
+  border-radius: inherit;
+  text-box: inherit;
 }
 
 :scope[data-loading] > :is(video, img):only-child {

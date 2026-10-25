@@ -10,7 +10,7 @@ function isDocumentOrShadowRoot(
 }
 
 export class Skeleton extends HTMLElement {
-  static observedAttributes = ["interactive"];
+  static observedAttributes = ["interactive", "text"];
 
   #loading = false;
   #unsubscribe?: Unsubscribe | undefined;
@@ -25,13 +25,23 @@ export class Skeleton extends HTMLElement {
     this.toggleAttribute("interactive", Boolean(value));
   }
 
+  /** Forces text mode, even when the text is wrapped in elements */
+  get text() {
+    return this.hasAttribute("text");
+  }
+
+  set text(value: boolean) {
+    this.toggleAttribute("text", Boolean(value));
+  }
+
   attributeChangedCallback(
-    _name: string,
+    name: string,
     oldValue: string | null,
     newValue: string | null,
   ) {
     if (oldValue === newValue) return;
-    this.#render(this.#loading);
+    if (name === "text") this.#update();
+    else this.#render(this.#loading);
   }
 
   connectedCallback() {
@@ -69,11 +79,11 @@ export class Skeleton extends HTMLElement {
   }
 
   #update() {
-    let isText = false;
+    let isText = this.text;
     for (const node of this.childNodes) {
+      if (isText) break;
       if (node instanceof Text && node.data.trim() !== "") {
         isText = true;
-        break;
       }
     }
     this.toggleAttribute("data-text", isText);

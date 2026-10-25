@@ -101,7 +101,7 @@ all of its skeletons at once.
 A `<nano-skeleton>` without a provider simply renders its content as usual.
 
 `<nano-skeleton>` works in one of two modes, picked automatically from its
-content.
+content (text mode can also be forced with the `text` attribute).
 
 ### Text mode
 
@@ -128,6 +128,34 @@ placeholder text first and replace it with real data later:
 
 ```html
 <h2><nano-skeleton>Loading title…</nano-skeleton></h2>
+```
+
+#### Text wrapped in elements
+
+Automatic detection only looks at text placed directly inside the skeleton.
+When the text is wrapped in an inline element, like a link or `<strong>`, add
+`text` to force text mode:
+
+```html
+<p>
+  <nano-skeleton text>
+    <a href="/posts/42">Read the full post</a>
+  </nano-skeleton>
+</p>
+```
+
+The placeholder follows the text lines exactly like plain text does. The
+wrapping elements should be inline: a block or `inline-block` child gets a
+single bar for its whole box.
+
+Text decorations, such as a link's underline, stay visible while loading, so the
+placeholder still reads as a link. To hide them too, wrap the link's content in
+a `<span>`:
+
+```html
+<nano-skeleton text>
+  <a href="/posts/42"><span>Read the full post</span></a>
+</nano-skeleton>
 ```
 
 ### Element mode
@@ -329,6 +357,7 @@ declare module "react" {
         Skeleton
       > & {
         interactive?: boolean;
+        text?: boolean;
       };
       [PROVIDER_NAME]: DetailedHTMLProps<
         HTMLAttributes<SkeletonProvider>,
@@ -362,13 +391,14 @@ While loading, the provider is exposed to assistive technology as
 | Attribute / property | Type      | Description                                                                                                   |
 | -------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
 | `interactive`        | `boolean` | Keeps the content focusable and clickable while loading. See [Interactive skeletons](#interactive-skeletons). |
+| `text`               | `boolean` | Forces text mode, e.g. for text inside a link. See [Text wrapped in elements](#text-wrapped-in-elements).     |
 
 It also exposes these state attributes, which you can use as styling hooks:
 
 | Attribute      | Set when                                                                              |
 | -------------- | ------------------------------------------------------------------------------------- |
 | `data-loading` | The nearest provider is loading.                                                      |
-| `data-text`    | The skeleton directly contains text (text mode).                                      |
+| `data-text`    | The skeleton directly contains text, or `text` is set (text mode).                    |
 | `inert`        | The nearest provider is loading and `interactive` isn't set. Blocks focus and clicks. |
 
 ### Exports
