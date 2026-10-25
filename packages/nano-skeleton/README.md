@@ -2,6 +2,8 @@
 
 A tiny, framework-agnostic skeleton loader built on Web Components.
 
+**[Live demo](https://smashercosmo.github.io/nano-skeleton/)**
+
 Instead of maintaining a separate "loading" version of every component, wrap the
 pieces of your real UI in `<nano-skeleton>` and flip a single `loading` switch.
 The layout stays exactly where it is, nothing jumps, and the content is swapped

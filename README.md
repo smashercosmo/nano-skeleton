@@ -2,6 +2,8 @@
 
 A tiny, framework-agnostic skeleton loader built on Web Components.
 
+**[Live demo](https://smashercosmo.github.io/nano-skeleton/)**
+
 Wrap pieces of your real UI in `<nano-skeleton>`, put a
 `<nano-skeleton-provider loading>` around them, and they turn into shimmering
 placeholders of the exact same shape. No separate loading markup and no layout
