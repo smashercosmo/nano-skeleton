@@ -2,3 +2,8 @@ nano-skeleton@0.1.1:
   dir: packages/nano-skeleton
   intents:
     - old-bottles-yell
+nano-skeleton@0.2.0:
+  dir: packages/nano-skeleton
+  intents:
+    - quiet-links-stay
+    - real-dodos-shop

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- feat: add `interactive` attribute to keep loading content focusable
+
+- feat: expose `aria-busy` on loading providers
+
 ## 0.1.1
 
 ### Patch Changes
