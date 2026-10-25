@@ -1,0 +1,16 @@
+{
+  "name": "@internal/create-github-release",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint:types": "tsc -b"
+  },
+  "dependencies": {
+    "@actions/core": "catalog:actions",
+    "@actions/exec": "catalog:actions"
+  },
+  "devDependencies": {
+    "@internal/tsconfig": "workspace:*",
+    "@types/node": "catalog:types"
+  }
+}

@@ -1,0 +1,14 @@
+name: Create GitHub Release
+description: GitHub Action for creating a tag and GitHub release, based on CHANGELOG.md, for the current version of every public workspace package that doesn't have a release yet
+
+inputs:
+  token:
+    description: GitHub token with `contents` write permission
+    required: true
+  draft:
+    description: Create draft releases. The tag is created once a draft is published. Tags that already have a release, draft or not, are skipped
+    default: "false"
+
+runs:
+  using: node24
+  main: index.ts

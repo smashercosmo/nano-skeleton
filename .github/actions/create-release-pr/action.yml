@@ -1,0 +1,21 @@
+name: Create Release PR
+description: GitHub Action for applying pending change intents with `pnpm version -r` and opening (or updating) a release PR with the result. The PR is opened from the branch named in the `RELEASE_BRANCH_NAME` env variable, which is force-pushed on every run
+
+inputs:
+  token:
+    description: GitHub App installation token with `contents` and `pull-requests` write permissions
+    required: true
+  app-slug:
+    description: GitHub App slug, used as the commit author
+    required: true
+  base:
+    description: Branch the release PR targets
+    default: main
+
+outputs:
+  pr-number:
+    description: Number of the opened or updated release PR
+
+runs:
+  using: node24
+  main: index.ts
