@@ -103,9 +103,9 @@ all of its skeletons at once.
 A `<nano-skeleton>` without a provider simply renders its content as usual.
 
 `<nano-skeleton>` works in one of two modes, picked automatically from its
-content (text mode can also be forced with the `text` attribute).
+content (inline mode can also be forced with the `inline` attribute).
 
-### Text mode
+### Inline mode
 
 If the skeleton directly contains non-empty text, it renders inline and the text
 itself becomes the placeholder. Each line of wrapped text gets its own rounded
@@ -136,11 +136,11 @@ placeholder text first and replace it with real data later:
 
 Automatic detection only looks at text placed directly inside the skeleton.
 When the text is wrapped in an inline element, like a link or `<strong>`, add
-`text` to force text mode:
+`inline` to force inline mode:
 
 ```html
 <p>
-  <nano-skeleton text>
+  <nano-skeleton inline>
     <a href="/posts/42">Read the full post</a>
   </nano-skeleton>
 </p>
@@ -155,7 +155,7 @@ placeholder still reads as a link. To hide them too, wrap the link's content in
 a `<span>`:
 
 ```html
-<nano-skeleton text>
+<nano-skeleton inline>
   <a href="/posts/42"><span>Read the full post</span></a>
 </nano-skeleton>
 ```
@@ -359,7 +359,7 @@ declare module "react" {
         Skeleton
       > & {
         interactive?: boolean;
-        text?: boolean;
+        inline?: boolean;
       };
       [PROVIDER_NAME]: DetailedHTMLProps<
         HTMLAttributes<SkeletonProvider>,
@@ -390,18 +390,19 @@ While loading, the provider is exposed to assistive technology as
 
 ### `<nano-skeleton>`
 
-| Attribute / property | Type      | Description                                                                                                   |
-| -------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
-| `interactive`        | `boolean` | Keeps the content focusable and clickable while loading. See [Interactive skeletons](#interactive-skeletons). |
-| `text`               | `boolean` | Forces text mode, e.g. for text inside a link. See [Text wrapped in elements](#text-wrapped-in-elements).     |
+| Attribute / property | Type      | Description                                                                                                                           |
+| -------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `interactive`        | `boolean` | Keeps the content focusable and clickable while loading. See [Interactive skeletons](#interactive-skeletons).                         |
+| `inline`             | `boolean` | Forces inline mode, e.g. for text inside a link. See [Text wrapped in elements](#text-wrapped-in-elements).                           |
 
-It also exposes these state attributes, which you can use as styling hooks:
+The component also manages these attributes itself, which you can use as
+styling hooks:
 
-| Attribute      | Set when                                                                              |
-| -------------- | ------------------------------------------------------------------------------------- |
-| `data-loading` | The nearest provider is loading.                                                      |
-| `data-text`    | The skeleton directly contains text, or `text` is set (text mode).                    |
-| `inert`        | The nearest provider is loading and `interactive` isn't set. Blocks focus and clicks. |
+| Attribute | Set when                                                                              |
+| --------- | ------------------------------------------------------------------------------------- |
+| `loading` | The nearest provider is loading.                                                      |
+| `inline`  | The skeleton directly contains text, or `inline` is set (inline mode).                |
+| `inert`   | The nearest provider is loading and `interactive` isn't set. Blocks focus and clicks. |
 
 ### Exports
 
@@ -424,7 +425,6 @@ The look is controlled by CSS custom properties:
 | `--nano-skeleton-background-image`   | A light/dark-aware horizontal gradient |
 | `--nano-skeleton-background-size`    | `300%`                                 |
 | `--nano-skeleton-animation`          | `shimmer 2s infinite ease-in-out`      |
-| `--nano-skeleton-text-border-radius` | `0.375rem` (text mode only)            |
 
 Each `<nano-skeleton>` inherits these from its ancestors, so set them on a
 parent element (or on `:root` to change all skeletons at once), not on the
