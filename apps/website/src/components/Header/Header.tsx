@@ -4,9 +4,15 @@ import styles from "#components/Header/Header.module.css";
 
 type Props = {
   onToggleLoading: () => void;
+  direction: "ltr" | "rtl";
+  onToggleDirection: () => void;
 };
 
-export function HeaderLeft({ onToggleLoading }: Props) {
+export function HeaderLeft({
+  onToggleLoading,
+  direction,
+  onToggleDirection,
+}: Props) {
   return (
     <div className={styles["root"]}>
       {createPortal(
@@ -18,6 +24,13 @@ export function HeaderLeft({ onToggleLoading }: Props) {
             type="button"
           >
             Toggle loading state
+          </button>
+          <button
+            onClick={onToggleDirection}
+            className={styles["loading-state-toggler"]}
+            type="button"
+          >
+            Direction: {direction.toUpperCase()}
           </button>
         </>,
         document.getElementById("header-left")!,

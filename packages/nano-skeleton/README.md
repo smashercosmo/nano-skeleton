@@ -484,6 +484,12 @@ The default colors use `light-dark()`, so they follow the page's
 }
 ```
 
+### Right-to-left
+
+The shimmer follows the reading direction: in right-to-left content, set with
+`dir="rtl"` on the skeleton or any ancestor, it moves from right to left. A
+custom `--nano-skeleton-animation` with its own keyframes isn't affected.
+
 ### Reduced motion
 
 The animation is disabled automatically for users with
