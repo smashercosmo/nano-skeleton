@@ -9,8 +9,8 @@ export default defineConfig((config) => {
     build: {
       /**
        * Browsers with native light-dark(). With older targets Lightning CSS
-       * polyfills it based on prefers-color-scheme only, which breaks the
-       * theme switcher that sets color-scheme on :root.
+       * polyfills it based on prefers-color-scheme only, which breaks the theme
+       * switcher that sets color-scheme on :root.
        */
       cssTarget: ["chrome123", "edge123", "firefox120", "safari17.5"],
     },
