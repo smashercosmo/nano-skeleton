@@ -10,11 +10,18 @@ function isDocumentOrShadowRoot(
 }
 
 export class Skeleton extends HTMLElement {
-  static observedAttributes = ["interactive", "text"];
+  static observedAttributes = ["interactive", "inline"];
 
-  #loading = false;
   #unsubscribe?: Unsubscribe | undefined;
   #observer = new MutationObserver(() => this.#update());
+
+  get loading() {
+    return this.hasAttribute("loading");
+  }
+
+  set loading(value: boolean) {
+    this.toggleAttribute("loading", Boolean(value));
+  }
 
   /** Keeps the content focusable and clickable while loading */
   get interactive() {
@@ -26,12 +33,12 @@ export class Skeleton extends HTMLElement {
   }
 
   /** Forces text mode, even when the text is wrapped in elements */
-  get text() {
-    return this.hasAttribute("text");
+  get inline() {
+    return this.hasAttribute("inline");
   }
 
-  set text(value: boolean) {
-    this.toggleAttribute("text", Boolean(value));
+  set inline(value: boolean) {
+    this.toggleAttribute("inline", Boolean(value));
   }
 
   attributeChangedCallback(
@@ -40,8 +47,8 @@ export class Skeleton extends HTMLElement {
     newValue: string | null,
   ) {
     if (oldValue === newValue) return;
-    if (name === "text") this.#update();
-    else this.#render(this.#loading);
+    if (name === "inline") this.#update();
+    else this.#render(this.loading);
   }
 
   connectedCallback() {
@@ -79,19 +86,18 @@ export class Skeleton extends HTMLElement {
   }
 
   #update() {
-    let isText = this.text;
+    let isInline = this.inline;
     for (const node of this.childNodes) {
-      if (isText) break;
+      if (isInline) break;
       if (node instanceof Text && node.data.trim() !== "") {
-        isText = true;
+        isInline = true;
       }
     }
-    this.toggleAttribute("data-text", isText);
+    this.toggleAttribute("inline", isInline);
   }
 
   #render(loading: boolean) {
-    this.#loading = loading;
+    this.toggleAttribute("loading", loading);
     this.toggleAttribute("inert", loading && !this.interactive);
-    this.toggleAttribute("data-loading", loading);
   }
 }
