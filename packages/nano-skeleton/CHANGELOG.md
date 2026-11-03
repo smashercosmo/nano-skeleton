@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+### Minor Changes
+
+- feat: RTL support
+
 ## 0.3.0
 
 ### Minor Changes
