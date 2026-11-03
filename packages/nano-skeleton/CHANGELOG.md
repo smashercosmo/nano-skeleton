@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1
+
+### Patch Changes
+
+- fix: link's skeleton and link's underline have different widths
+
 ## 0.4.0
 
 ### Minor Changes
