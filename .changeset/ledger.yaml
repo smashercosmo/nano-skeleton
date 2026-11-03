@@ -19,3 +19,7 @@ nano-skeleton@0.4.1:
   dir: packages/nano-skeleton
   intents:
     - bright-pens-dress
+nano-skeleton@0.5.0:
+  dir: packages/nano-skeleton
+  intents:
+    - sweet-pears-wonder
