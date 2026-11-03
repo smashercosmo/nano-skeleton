@@ -48,7 +48,7 @@ export function Card(props: Props) {
           )}
           {props?.link && (
             <div>
-              <nano-skeleton text interactive={props.link.interactive ?? false}>
+              <nano-skeleton inline interactive={props.link.interactive ?? false}>
                 <a className={styles["link"]} href={props.link.href}>
                   {props.link.label}
                 </a>
