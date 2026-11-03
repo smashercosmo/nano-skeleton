@@ -15,7 +15,7 @@
   );
 }
 
-:scope:not([inline]) {
+:scope:not([data-text]) {
   display: contents;
 }
 
@@ -24,14 +24,14 @@
  * as layout is intact. Hidden visually only: focus and accessibility are
  * handled by inert, so interactive skeletons keep both.
  */
-:scope[loading] > * > * {
+:scope[data-loading] > * > * {
   opacity: 0 !important;
 }
 
 /**
  * Skeleton's content is just an inline text
  */
-:scope[loading][inline] {
+:scope[data-loading][data-text] {
   display: inline;
   border-radius: var(
     --nano-skeleton-text-border-radius,
@@ -55,18 +55,18 @@
  * Children and grandchildren need to inherit these styles
  * for consistent outlines
  */
-:scope[loading][inline] > *,
-:scope[loading][inline] > * > * {
+:scope[data-loading][data-text] > *,
+:scope[data-loading][data-text] > * > * {
   border-radius: inherit;
   text-box: inherit;
 }
 
-:scope[loading] > :is(video, img):only-child {
+:scope[data-loading] > :is(video, img):only-child {
   content: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7") !important;
 }
 
-:scope[loading][inline],
-:scope[loading]:not([inline]) > * {
+:scope[data-loading][data-text],
+:scope[data-loading]:not([data-text]) > * {
   background-image: var(
     --nano-skeleton-background-image,
     var(--nano-skeleton-background-image-default)
@@ -78,8 +78,8 @@
 }
 
 @media not (prefers-reduced-motion: reduce) {
-  :scope[loading][inline],
-  :scope[loading]:not([inline]) > * {
+  :scope[data-loading][data-text],
+  :scope[data-loading]:not([data-text]) > * {
     animation: var(
       --nano-skeleton-animation,
       var(--nano-skeleton-animation-default)
@@ -90,8 +90,8 @@
 /**
  * The shimmer follows the reading direction
  */
-:scope[loading][inline]:dir(rtl),
-:scope[loading]:not([inline]) > :dir(rtl) {
+:scope[data-loading][data-text]:dir(rtl),
+:scope[data-loading]:not([data-text]) > :dir(rtl) {
   --nano-skeleton-shimmer-from: 0%;
   --nano-skeleton-shimmer-to: 100%;
 }
