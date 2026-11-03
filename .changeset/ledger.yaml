@@ -15,3 +15,7 @@ nano-skeleton@0.4.0:
   dir: packages/nano-skeleton
   intents:
     - happy-bees-travel
+nano-skeleton@0.4.1:
+  dir: packages/nano-skeleton
+  intents:
+    - bright-pens-dress
