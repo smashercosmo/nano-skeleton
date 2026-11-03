@@ -86,11 +86,20 @@
   }
 }
 
+/**
+ * The shimmer follows the reading direction
+ */
+:scope[data-loading][data-text]:dir(rtl),
+:scope[data-loading]:not([data-text]) > :dir(rtl) {
+  --nano-skeleton-shimmer-from: 0%;
+  --nano-skeleton-shimmer-to: 100%;
+}
+
 @keyframes shimmer {
   from {
-    background-position-x: 100%;
+    background-position-x: var(--nano-skeleton-shimmer-from, 100%);
   }
   to {
-    background-position-x: 0;
+    background-position-x: var(--nano-skeleton-shimmer-to, 0%);
   }
 }
