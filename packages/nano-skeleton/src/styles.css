@@ -38,6 +38,7 @@
     var(--nano-skeleton-text-border-radius-default)
   );
   box-decoration-break: clone;
+  text-decoration-skip-ink: none;
   text-box: cap alphabetic;
   /**
    * This ensures the ellipsis on truncated text is also hidden.
