@@ -2,6 +2,12 @@
 
 ## 0.5.0
 
+### Patch Changes
+
+- chore: add oxlint
+
+## 0.5.0
+
 ### Minor Changes
 
 - refactor: get rid of data attributes
