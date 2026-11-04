@@ -1,6 +1,6 @@
 import { CSS_CONTENT, COMPONENT_NAME } from "#root/constants.js";
 
-/** CSS_CONTENT get replaced with styles.css content during build. */
+/** CSS_CONTENT constant gets replaced with styles.css content during build. */
 const css = `@scope (${COMPONENT_NAME}) {
   ${CSS_CONTENT}
 }`;

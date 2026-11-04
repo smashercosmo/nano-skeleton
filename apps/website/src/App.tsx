@@ -1,4 +1,4 @@
-import { init } from "nano-skeleton";
+import { Skeleton, SkeletonProvider } from "nano-skeleton";
 import { useEffect, useState } from "react";
 
 import previewImage from "#assets/preview.c3b340d3.png";
@@ -6,7 +6,8 @@ import { Card } from "#components/Card/Card.js";
 import { HeaderLeft } from "#components/Header/Header.js";
 import styles from "#root/App.module.css";
 
-init();
+Skeleton.define();
+SkeletonProvider.define()
 
 export function App() {
   const [isLoading, setIsLoading] = useState(false);

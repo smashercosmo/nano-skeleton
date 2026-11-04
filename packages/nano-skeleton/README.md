@@ -54,16 +54,18 @@ yarn add nano-skeleton
 
 ## Quick start
 
-Call `init()` once to register the custom elements:
+Register the custom elements:
 
 ```js
-import { init } from "nano-skeleton";
+import { Skeleton, SkeletonProvider } from "nano-skeleton";
 
-init();
+SkeletonProvider.define();
+Skeleton.define();
 ```
 
-`init()` is idempotent, so calling it more than once (for example from several
-entry points or during hot reload) is safe.
+Each `define()` does nothing if the element is already registered, so calling
+it more than once (for example from several entry points or during hot reload)
+is safe.
 
 Then use the elements in your markup:
 
@@ -305,9 +307,10 @@ directly:
 
 ```tsx
 import { useQuery } from "@tanstack/react-query";
-import { init } from "nano-skeleton";
+import { Skeleton, SkeletonProvider } from "nano-skeleton";
 
-init();
+SkeletonProvider.define();
+Skeleton.define();
 
 export function UserCard({ id }: { id: string }) {
   const { data, isPending } = useQuery({
@@ -374,10 +377,15 @@ declare module "react" {
 
 ## API
 
-### `init()`
+### `SkeletonProvider.define()`
 
-Registers `<nano-skeleton-provider>` and `<nano-skeleton>` with
-`customElements`. Safe to call multiple times.
+Registers `<nano-skeleton-provider>` with `customElements`. Does nothing if the
+element is already registered, so it's safe to call multiple times.
+
+### `Skeleton.define()`
+
+Registers `<nano-skeleton>` with `customElements`. Does nothing if the element
+is already registered, so it's safe to call multiple times.
 
 ### `<nano-skeleton-provider>`
 
@@ -390,10 +398,10 @@ While loading, the provider is exposed to assistive technology as
 
 ### `<nano-skeleton>`
 
-| Attribute / property | Type      | Description                                                                                                                           |
-| -------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `interactive`        | `boolean` | Keeps the content focusable and clickable while loading. See [Interactive skeletons](#interactive-skeletons).                         |
-| `inline`             | `boolean` | Forces inline mode, e.g. for text inside a link. See [Text wrapped in elements](#text-wrapped-in-elements).                           |
+| Attribute / property | Type      | Description                                                                                                   |
+| -------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| `interactive`        | `boolean` | Keeps the content focusable and clickable while loading. See [Interactive skeletons](#interactive-skeletons). |
+| `inline`             | `boolean` | Forces inline mode, e.g. for text inside a link. See [Text wrapped in elements](#text-wrapped-in-elements).   |
 
 The component also manages these attributes itself, which you can use as
 styling hooks:
@@ -408,7 +416,6 @@ styling hooks:
 
 ```ts
 import {
-  init,
   Skeleton, // <nano-skeleton> class
   SkeletonProvider, // <nano-skeleton-provider> class
   COMPONENT_NAME, // "nano-skeleton"
@@ -420,11 +427,11 @@ import {
 
 The look is controlled by CSS custom properties:
 
-| Property                             | Default                                |
-| ------------------------------------ | -------------------------------------- |
-| `--nano-skeleton-background-image`   | A light/dark-aware horizontal gradient |
-| `--nano-skeleton-background-size`    | `300%`                                 |
-| `--nano-skeleton-animation`          | `shimmer 2s infinite ease-in-out`      |
+| Property                           | Default                                |
+| ---------------------------------- | -------------------------------------- |
+| `--nano-skeleton-background-image` | A light/dark-aware horizontal gradient |
+| `--nano-skeleton-background-size`  | `300%`                                 |
+| `--nano-skeleton-animation`        | `shimmer 2s infinite ease-in-out`      |
 
 Each `<nano-skeleton>` inherits these from its ancestors, so set them on a
 parent element (or on `:root` to change all skeletons at once), not on the
