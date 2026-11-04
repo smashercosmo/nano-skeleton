@@ -1,7 +1,7 @@
-import { PROVIDER_NAME, COMPONENT_NAME } from "#root/constants.js";
-import { ContextRequestEvent } from "#root/ContextRequestEvent.js";
-import { Skeleton } from "#root/Skeleton.js";
-import { SkeletonProvider } from "#root/SkeletonProvider.js";
+import type { PROVIDER_NAME, COMPONENT_NAME } from "#root/constants.js";
+import type { ContextRequestEvent } from "#root/context-request-event.js";
+import type { SkeletonProvider } from "#root/skeleton-provider.js";
+import type { Skeleton } from "#root/skeleton.js";
 
 declare global {
   interface HTMLElementEventMap {

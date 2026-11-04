@@ -10,6 +10,7 @@
   },
   "imports": {
     "#root/*": "./src/*",
+    "#assets/*": "./assets/*",
     "#components/*": "./src/components/*"
   },
   "devDependencies": {

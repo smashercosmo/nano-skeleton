@@ -1,8 +1,8 @@
 import { PROVIDER_NAME, COMPONENT_NAME } from "#root/constants.js";
-import { Skeleton } from "#root/Skeleton.js";
-import { SkeletonProvider } from "#root/SkeletonProvider.js";
+import { SkeletonProvider } from "#root/skeleton-provider.js";
+import { Skeleton } from "#root/skeleton.js";
 
-export function init() {
+function init() {
   if (!customElements.get(PROVIDER_NAME)) {
     customElements.define(PROVIDER_NAME, SkeletonProvider);
   }
@@ -11,5 +11,7 @@ export function init() {
   }
 }
 
-export { Skeleton, SkeletonProvider };
-export { PROVIDER_NAME, COMPONENT_NAME };
+export { PROVIDER_NAME, COMPONENT_NAME } from "#root/constants.js";
+export { Skeleton } from "#root/skeleton.js";
+export { SkeletonProvider } from "#root/skeleton-provider.js";
+export { init };

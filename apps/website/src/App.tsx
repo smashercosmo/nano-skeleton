@@ -1,11 +1,10 @@
 import { init } from "nano-skeleton";
 import { useEffect, useState } from "react";
 
+import previewImage from "#assets/preview.c3b340d3.png";
 import { Card } from "#components/Card/Card.js";
 import { HeaderLeft } from "#components/Header/Header.js";
 import styles from "#root/App.module.css";
-
-import previewImage from "../assets/preview.c3b340d3.png";
 
 init();
 
@@ -20,13 +19,15 @@ export function App() {
   return (
     <div>
       <HeaderLeft
-        onToggleLoading={() => setIsLoading((currentState) => !currentState)}
+        onToggleLoading={() => {
+          setIsLoading((currentState) => !currentState);
+        }}
         direction={direction}
-        onToggleDirection={() =>
+        onToggleDirection={() => {
           setDirection((currentState) =>
             currentState === "ltr" ? "rtl" : "ltr",
-          )
-        }
+          );
+        }}
       />
       <div className={styles["root"]}>
         <nano-skeleton-provider loading={isLoading}>

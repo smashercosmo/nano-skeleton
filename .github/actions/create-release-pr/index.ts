@@ -1,6 +1,7 @@
 import { getInput, setOutput, info, setFailed } from "@actions/core";
 import { exec, getExecOutput } from "@actions/exec";
 import { getOctokit, context } from "@actions/github";
+import process from "node:process";
 
 type ReleasePlan = {
   name: string;
@@ -14,7 +15,7 @@ try {
   const base = getInput("base", { required: true });
   const branch = process.env["RELEASE_BRANCH_NAME"];
 
-  if (!branch) {
+  if (branch === undefined || branch === "") {
     throw new Error("RELEASE_BRANCH_NAME env variable isn't set");
   }
 
@@ -96,7 +97,7 @@ try {
     state: "open",
   });
 
-  const existing = pulls[0];
+  const [existing] = pulls;
 
   if (existing) {
     await octokit.rest.pulls.update({

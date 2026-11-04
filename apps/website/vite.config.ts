@@ -2,8 +2,8 @@ import babel from "@rolldown/plugin-babel";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defaultClientConditions, defineConfig } from "vite";
 
-export default defineConfig((config) => {
-  return {
+export default defineConfig((config) => (
+  {
     /** GitHub Pages serves the site from /nano-skeleton/ */
     base: config.command === "build" ? "/nano-skeleton/" : "/",
     build: {
@@ -26,5 +26,5 @@ export default defineConfig((config) => {
         presets: [reactCompilerPreset()],
       }),
     ],
-  };
-});
+  }
+));

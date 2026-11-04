@@ -2,17 +2,22 @@ import { createPortal } from "react-dom";
 
 import styles from "#components/Header/Header.module.css";
 
-type Props = {
+interface Props {
   onToggleLoading: () => void;
   direction: "ltr" | "rtl";
   onToggleDirection: () => void;
-};
+}
 
 export function HeaderLeft({
   onToggleLoading,
   direction,
   onToggleDirection,
-}: Props) {
+}: Readonly<Props>) {
+  const container = document.querySelector("#header-left");
+  if (!container) {
+    throw new Error("Header element #header-left not found");
+  }
+
   return (
     <div className={styles["root"]}>
       {createPortal(
@@ -33,7 +38,7 @@ export function HeaderLeft({
             Direction: {direction.toUpperCase()}
           </button>
         </>,
-        document.getElementById("header-left")!,
+        container,
       )}
     </div>
   );

@@ -6,12 +6,16 @@ import type {
 } from "nano-skeleton";
 import type { DetailedHTMLProps, HTMLAttributes } from "react";
 
-type FunctionKeys<T> = {
-  [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never;
-}[keyof T];
+type FunctionKeys<TObject> = {
+  [TKey in keyof TObject]: TObject[TKey] extends (
+    ...args: readonly never[]
+  ) => unknown
+    ? TKey
+    : never;
+}[keyof TObject];
 
-type ElementProps<T extends HTMLElement> = Partial<
-  Omit<T, keyof HTMLElement | FunctionKeys<T>>
+type ElementProps<TElement extends HTMLElement> = Partial<
+  Omit<TElement, keyof HTMLElement | FunctionKeys<TElement>>
 >;
 
 declare module "react" {

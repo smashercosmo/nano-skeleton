@@ -1,17 +1,18 @@
 import { CSS_CONTENT, COMPONENT_NAME } from "#root/constants.js";
 
-/** It gets replaced with styles.css content during build. */
+/** CSS_CONTENT get replaced with styles.css content during build. */
 const css = `@scope (${COMPONENT_NAME}) {
   ${CSS_CONTENT}
 }`;
 
-let sheet: CSSStyleSheet | undefined;
+const cache: { sheet?: CSSStyleSheet } = {};
 
-export function adoptStyles(root: Document | ShadowRoot) {
-  if (!sheet) {
-    sheet = new CSSStyleSheet();
-    sheet.replaceSync(css);
+export async function adoptStyles(root: Document | ShadowRoot) {
+  if (!cache.sheet) {
+    cache.sheet = new CSSStyleSheet();
+    await cache.sheet.replace(css);
   }
+  const { sheet } = cache;
   if (!root.adoptedStyleSheets.includes(sheet)) {
     root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
   }
