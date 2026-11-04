@@ -22,4 +22,5 @@ nano-skeleton@0.4.1:
 nano-skeleton@0.5.0:
   dir: packages/nano-skeleton
   intents:
+    - short-flowers-repair
     - sweet-pears-wonder
