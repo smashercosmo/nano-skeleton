@@ -24,3 +24,7 @@ nano-skeleton@0.5.0:
   intents:
     - short-flowers-repair
     - sweet-pears-wonder
+nano-skeleton@0.6.0:
+  dir: packages/nano-skeleton
+  intents:
+    - brave-elements-define
