@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.0
+
+### Minor Changes
+
+- refactor: replace `init()` with static `define()` methods
+
+  BREAKING CHANGES:
+
+  - `init()` is no more, use `SkeletonProvider.define()` and `Skeleton.define()` instead
+
 ## 0.5.1
 
 ### Patch Changes
