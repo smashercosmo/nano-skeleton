@@ -1,6 +1,6 @@
 import type { Unsubscribe } from "#root/types.js";
 
-import { SKELETON_CONTEXT } from "#root/constants.js";
+import { COMPONENT_NAME, SKELETON_CONTEXT } from "#root/constants.js";
 import { ContextRequestEvent } from "#root/context-request-event.js";
 import { adoptStyles } from "#root/styles.js";
 
@@ -12,6 +12,11 @@ function isDocumentOrShadowRoot(
 
 export class Skeleton extends HTMLElement {
   public static readonly observedAttributes = ["interactive", "inline"];
+  public static define() {
+    if (!customElements.get(COMPONENT_NAME)) {
+      customElements.define(COMPONENT_NAME, this);
+    }
+  }
 
   #unsubscribe?: Unsubscribe | undefined;
 
@@ -27,7 +32,6 @@ export class Skeleton extends HTMLElement {
     this.toggleAttribute("loading", value);
   }
 
-  /** Keeps the content focusable and clickable while loading */
   public get interactive() {
     return this.hasAttribute("interactive");
   }
@@ -36,7 +40,6 @@ export class Skeleton extends HTMLElement {
     this.toggleAttribute("interactive", value);
   }
 
-  /** Forces text mode, even when the text is wrapped in elements */
   public get inline() {
     return this.hasAttribute("inline");
   }
@@ -98,6 +101,11 @@ export class Skeleton extends HTMLElement {
 
   #update() {
     let isInline = this.inline;
+    /**
+     * Here we auto-determine `inline` mode.
+     * Skeleton is considered `inline` if it contains
+     * text nodes only.
+     */
     for (const node of this.childNodes) {
       if (isInline) {
         break;

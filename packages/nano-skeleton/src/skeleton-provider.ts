@@ -1,10 +1,15 @@
 import type { ContextRequestEvent } from "#root/context-request-event.js";
 import type { LoadingCallback } from "#root/types.js";
 
-import { SKELETON_CONTEXT } from "#root/constants.js";
+import { PROVIDER_NAME, SKELETON_CONTEXT } from "#root/constants.js";
 
 export class SkeletonProvider extends HTMLElement {
-  public static observedAttributes = ["loading"] as const;
+  public static readonly observedAttributes = ["loading"];
+  public static define() {
+    if (!customElements.get(PROVIDER_NAME)) {
+      customElements.define(PROVIDER_NAME, this);
+    }
+  }
 
   readonly #subscribers = new Set<LoadingCallback>();
   readonly #internals = this.attachInternals();
@@ -12,8 +17,8 @@ export class SkeletonProvider extends HTMLElement {
   public constructor() {
     super();
     /**
-     * Adding listener from the constructor so the provider is ready before any
-     * descendant connects and asks for context.
+     * Adding listener from the constructor so the provider is ready
+     * before any descendant connects and asks for context.
      */
     this.addEventListener(
       "context-request",
@@ -58,10 +63,7 @@ export class SkeletonProvider extends HTMLElement {
     if (oldValue === newValue) {
       return;
     }
-    /**
-     * Via internals, so an aria-busy attribute set by the user still takes
-     * precedence.
-     */
+    /** Setting `aria-busy` Via internals so it can be overridden by user */
     // oxlint-disable-next-line unicorn/no-null -- ariaBusy accepts either string or null
     this.#internals.ariaBusy = this.loading ? "true" : null;
     for (const subscriber of this.#subscribers) {
