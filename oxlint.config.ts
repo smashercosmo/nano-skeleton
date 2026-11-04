@@ -923,11 +923,9 @@ const config: OxlintConfig = {
     {
       files: ["*.d.ts"],
       rules: {
-        /**
-         * *.d.ts files don't have to be modules
-         */
+        /** *.d.ts files don't have to be modules */
         "import/unambiguous": "off",
-      }
+      },
     },
 
     //endregion

@@ -15,28 +15,31 @@ export class SkeletonProvider extends HTMLElement {
      * Adding listener from the constructor so the provider is ready before any
      * descendant connects and asks for context.
      */
-    this.addEventListener("context-request", (event: Readonly<ContextRequestEvent>) => {
-      if (
-        event.context !== SKELETON_CONTEXT ||
-        typeof event.callback !== "function"
-      ) {
-        return;
-      }
+    this.addEventListener(
+      "context-request",
+      (event: Readonly<ContextRequestEvent>) => {
+        if (
+          event.context !== SKELETON_CONTEXT ||
+          typeof event.callback !== "function"
+        ) {
+          return;
+        }
 
-      /** The nearest provider wins */
-      event.stopPropagation();
+        /** The nearest provider wins */
+        event.stopPropagation();
 
-      const { callback: subscriber } = event;
+        const { callback: subscriber } = event;
 
-      if (event.subscribe) {
-        this.#subscribers.add(subscriber);
-        subscriber(this.loading, () => {
-          this.#subscribers.delete(subscriber);
-        });
-      } else {
-        subscriber(this.loading);
-      }
-    });
+        if (event.subscribe) {
+          this.#subscribers.add(subscriber);
+          subscriber(this.loading, () => {
+            this.#subscribers.delete(subscriber);
+          });
+        } else {
+          subscriber(this.loading);
+        }
+      },
+    );
   }
 
   public get loading() {

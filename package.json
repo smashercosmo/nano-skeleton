@@ -9,6 +9,7 @@
     "format": "oxfmt",
     "lint:ox": "oxlint --type-aware",
     "lint:types": "pnpm -r lint:types",
+    "lint": "pnpm lint:ox && pnpm lint:types",
     "update:deps": "pnpm up -r --latest --interactive"
   },
   "devDependencies": {
