@@ -36,8 +36,8 @@
         }
 
         /**
-         * Checks which radio-button matches the stored value
-         * and marks it as checked
+         * Checks which radio-button matches the stored value and marks it as
+         * checked
          */
         function setColorThemeSwitcherValue(theme) {
           document
@@ -48,10 +48,7 @@
             });
         }
 
-        /**
-         * Updates value in storage when user switches
-         * theme value on the page
-         */
+        /** Updates value in storage when user switches theme value on the page */
         document
           .querySelector(`.color-theme-switcher`)
           ?.addEventListener("change", (event) =>
@@ -59,8 +56,9 @@
           );
 
         /**
-         * The theme or loading state were changed in a different tab. The `storage` event only
-         * fires in the OTHER tabs, the data there has to be updated by hand.
+         * The theme or loading state were changed in a different tab. The
+         * `storage` event only fires in the OTHER tabs, the data there has to
+         * be updated by hand.
          */
         window.addEventListener("storage", (event) => {
           if (
@@ -72,8 +70,8 @@
         });
 
         /**
-         * The system theme changed while the app is open: the system wins.
-         * Drop any pinned Light/Dark and go back to Auto.
+         * The system theme changed while the app is open: the system wins. Drop
+         * any pinned Light/Dark and go back to Auto.
          */
         const media = matchMedia("(prefers-color-scheme: dark)");
         media.addEventListener("change", () => {
@@ -98,6 +96,6 @@
     </header>
 
     <main id="root"></main>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

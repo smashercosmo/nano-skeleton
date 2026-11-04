@@ -1,52 +1,50 @@
-import {
-  type ReactNode,
-  type ImgHTMLAttributes,
-  type VideoHTMLAttributes,
-  type ReactElement,
+import type {
+  ReactNode,
+  ImgHTMLAttributes,
+  VideoHTMLAttributes,
+  ReactElement,
 } from "react";
 
 import styles from "./Card.module.css";
 
-export type Props =
-  | {
-      media?:
-        | ReactElement<ImgHTMLAttributes<HTMLImageElement>>
-        | ReactElement<VideoHTMLAttributes<HTMLVideoElement>>;
-      title?: ReactNode;
-      description?: ReactNode;
-      link?: {
-        href: string;
-        label: ReactNode;
-        /** Keeps the link focusable while loading */
-        interactive?: boolean;
-      };
-    }
-  | undefined;
+export interface Props {
+  media?:
+    | ReactElement<ImgHTMLAttributes<HTMLImageElement>>
+    | ReactElement<VideoHTMLAttributes<HTMLVideoElement>>;
+  title?: ReactNode;
+  description?: ReactNode;
+  link?: Readonly<{
+    href: string;
+    label: ReactNode;
+    /** Keeps the link focusable while loading */
+    interactive?: boolean;
+  }>;
+}
 
-export function Card(props: Props) {
+export function Card(props: Readonly<Props>) {
   return (
     <article className={styles["card"]}>
       <div className={styles["layout"]}>
         <div className={styles["media"]}>
           <nano-skeleton>
-            <>{props?.media}</>
+            <>{props.media}</>
           </nano-skeleton>
         </div>
         <nano-skeleton>
           <div style={{ width: 100, height: 100, background: "red" }}></div>
         </nano-skeleton>
         <div className={styles["content"]}>
-          {props?.title && (
+          {props.title !== undefined && (
             <h2 className={styles["title"]}>
-              <nano-skeleton>{props?.title}</nano-skeleton>
+              <nano-skeleton>{props.title}</nano-skeleton>
             </h2>
           )}
-          {props?.description && (
+          {props.description !== undefined && (
             <p className={styles["description"]}>
-              <nano-skeleton>{props?.description}</nano-skeleton>
+              <nano-skeleton>{props.description}</nano-skeleton>
             </p>
           )}
-          {props?.link && (
+          {props.link && (
             <div>
               <nano-skeleton
                 inline

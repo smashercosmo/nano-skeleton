@@ -1,7 +1,8 @@
+import type { Unsubscribe } from "#root/types.js";
+
 import { SKELETON_CONTEXT } from "#root/constants.js";
-import { ContextRequestEvent } from "#root/ContextRequestEvent.js";
+import { ContextRequestEvent } from "#root/context-request-event.js";
 import { adoptStyles } from "#root/styles.js";
-import { type Unsubscribe } from "#root/types.js";
 
 function isDocumentOrShadowRoot(
   node: Node | Document | ShadowRoot,
@@ -10,52 +11,60 @@ function isDocumentOrShadowRoot(
 }
 
 export class Skeleton extends HTMLElement {
-  static observedAttributes = ["interactive", "inline"];
+  public static readonly observedAttributes = ["interactive", "inline"];
 
   #unsubscribe?: Unsubscribe | undefined;
-  #observer = new MutationObserver(() => this.#update());
 
-  get loading() {
+  readonly #observer = new MutationObserver(() => {
+    this.#update();
+  });
+
+  public get loading() {
     return this.hasAttribute("loading");
   }
 
-  set loading(value: boolean) {
-    this.toggleAttribute("loading", Boolean(value));
+  public set loading(value: boolean) {
+    this.toggleAttribute("loading", value);
   }
 
   /** Keeps the content focusable and clickable while loading */
-  get interactive() {
+  public get interactive() {
     return this.hasAttribute("interactive");
   }
 
-  set interactive(value: boolean) {
-    this.toggleAttribute("interactive", Boolean(value));
+  public set interactive(value: boolean) {
+    this.toggleAttribute("interactive", value);
   }
 
   /** Forces text mode, even when the text is wrapped in elements */
-  get inline() {
+  public get inline() {
     return this.hasAttribute("inline");
   }
 
-  set inline(value: boolean) {
-    this.toggleAttribute("inline", Boolean(value));
+  public set inline(value: boolean) {
+    this.toggleAttribute("inline", value);
   }
 
-  attributeChangedCallback(
+  public attributeChangedCallback(
     name: string,
     oldValue: string | null,
     newValue: string | null,
   ) {
-    if (oldValue === newValue) return;
-    if (name === "inline") this.#update();
-    else this.#render(this.loading);
+    if (oldValue === newValue) {
+      return;
+    }
+    if (name === "inline") {
+      this.#update();
+    } else {
+      this.#render(this.loading);
+    }
   }
 
-  connectedCallback() {
+  public async connectedCallback() {
     const root = this.getRootNode();
 
     if (isDocumentOrShadowRoot(root)) {
-      adoptStyles(root);
+      await adoptStyles(root);
     }
 
     this.#update();
@@ -65,7 +74,9 @@ export class Skeleton extends HTMLElement {
       new ContextRequestEvent(
         SKELETON_CONTEXT,
         (loading, unsubscribe) => {
-          if (unsubscribe) this.#unsubscribe = unsubscribe;
+          if (unsubscribe) {
+            this.#unsubscribe = unsubscribe;
+          }
           this.#render(loading);
         },
         true,
@@ -79,7 +90,7 @@ export class Skeleton extends HTMLElement {
     });
   }
 
-  disconnectedCallback() {
+  public disconnectedCallback() {
     this.#unsubscribe?.();
     this.#unsubscribe = undefined;
     this.#observer.disconnect();
@@ -88,7 +99,9 @@ export class Skeleton extends HTMLElement {
   #update() {
     let isInline = this.inline;
     for (const node of this.childNodes) {
-      if (isInline) break;
+      if (isInline) {
+        break;
+      }
       if (node instanceof Text && node.data.trim() !== "") {
         isInline = true;
       }

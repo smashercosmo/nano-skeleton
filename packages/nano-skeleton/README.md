@@ -304,8 +304,8 @@ React 19 passes properties to custom elements, so `loading` can be bound
 directly:
 
 ```tsx
-import { init } from "nano-skeleton";
 import { useQuery } from "@tanstack/react-query";
+import { init } from "nano-skeleton";
 
 init();
 

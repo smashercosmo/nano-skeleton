@@ -7,12 +7,17 @@
     "dev": "pnpm -r dev",
     "preview": "pnpm -r preview",
     "format": "oxfmt",
+    "lint:ox": "oxlint --type-aware",
     "lint:types": "pnpm -r lint:types",
+    "lint": "pnpm lint:ox && pnpm lint:types",
     "update:deps": "pnpm up -r --latest --interactive"
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@7.0.2",
+    "eslint-plugin-regexp": "catalog:lint",
     "oxfmt": "catalog:dev",
+    "oxlint": "catalog:lint",
+    "oxlint-tsgolint": "catalog:lint",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "catalog:dev"
   },
