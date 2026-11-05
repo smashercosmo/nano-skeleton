@@ -118,7 +118,7 @@
    * Descendants inherit forced-color-adjust: none, so text decorations
    * that stay visible while loading need their system colors restored
    */
-  :scope[loading][inline] * {
+  :scope[loading][inline] *:not(:any-link) {
     text-decoration-color: CanvasText;
   }
 
