@@ -79,34 +79,24 @@
 
 :scope[loading][inline],
 :scope[loading]:not([inline]) > * {
-  background-image: var(
-    --nano-skeleton-background-image,
-    var(--nano-skeleton-background-image-default)
-  ) !important;
   background-size: var(
     --nano-skeleton-background-size,
     var(--nano-skeleton-background-size-default)
   ) !important;
-}
 
-@media not (prefers-reduced-motion: reduce) {
-  :scope[loading][inline],
-  :scope[loading]:not([inline]) > * {
-    animation: var(
-      --nano-skeleton-animation,
-      var(--nano-skeleton-animation-default)
+  @media not (forced-colors: active) {
+    background-image: var(
+      --nano-skeleton-background-image,
+      var(--nano-skeleton-background-image-default)
     ) !important;
   }
-}
 
-/**
- * Forced colors mode drops gradient backgrounds, which would make
- * the skeleton disappear. Opt out of forced colors and redraw it
- * with system colors only, so the user's palette is still respected.
- */
-@media (forced-colors: active) {
-  :scope[loading][inline],
-  :scope[loading]:not([inline]) > * {
+  /**
+   * Forced colors mode drops gradient backgrounds, which would make
+   * the skeleton disappear. Opt out of forced colors and redraw it
+   * with system colors only, so the user's palette is still respected.
+   */
+  @media (forced-colors: active) {
     forced-color-adjust: none;
     background-image: var(
       --nano-skeleton-forced-colors-background-image,
@@ -114,11 +104,20 @@
     ) !important;
   }
 
+  @media not (prefers-reduced-motion: reduce) {
+    animation: var(
+      --nano-skeleton-animation,
+      var(--nano-skeleton-animation-default)
+    ) !important;
+  }
+}
+
+@media (forced-colors: active) {
   /**
-   * Descendants inherit forced-color-adjust: none, so text decorations
+   * Descendants inherit "forced-color-adjust: none", so text decorations
    * that stay visible while loading need their system colors restored
    */
-  :scope[loading][inline] * {
+  :scope[loading][inline] *:not(:any-link) {
     text-decoration-color: CanvasText;
   }
 

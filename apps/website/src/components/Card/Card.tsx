@@ -31,7 +31,7 @@ export function Card(props: Readonly<Props>) {
           </nano-skeleton>
         </div>
         <nano-skeleton>
-          <div style={{ width: 100, height: 100, background: "red" }}></div>
+          <div className={styles["block"]}></div>
         </nano-skeleton>
         <div className={styles["content"]}>
           {props.title !== undefined && (
