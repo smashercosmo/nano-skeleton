@@ -28,3 +28,7 @@ nano-skeleton@0.6.0:
   dir: packages/nano-skeleton
   intents:
     - brave-elements-define
+nano-skeleton@0.7.0:
+  dir: packages/nano-skeleton
+  intents:
+    - calm-colors-shimmer
