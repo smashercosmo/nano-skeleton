@@ -427,11 +427,12 @@ import {
 
 The look is controlled by CSS custom properties:
 
-| Property                           | Default                                |
-| ---------------------------------- | -------------------------------------- |
-| `--nano-skeleton-background-image` | A light/dark-aware horizontal gradient |
-| `--nano-skeleton-background-size`  | `300%`                                 |
-| `--nano-skeleton-animation`        | `shimmer 2s infinite ease-in-out`      |
+| Property                                         | Default                                                                                   |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `--nano-skeleton-background-image`               | A light/dark-aware horizontal gradient                                                    |
+| `--nano-skeleton-background-size`                | `300%`                                                                                    |
+| `--nano-skeleton-animation`                      | `shimmer 2s infinite ease-in-out`                                                         |
+| `--nano-skeleton-forced-colors-background-image` | A gray gradient mixed from `CanvasText` and `Canvas` system colors, see [Forced colors](#forced-colors) |
 
 Each `<nano-skeleton>` inherits these from its ancestors, so set them on a
 parent element (or on `:root` to change all skeletons at once), not on the
@@ -502,6 +503,33 @@ custom `--nano-skeleton-animation` with its own keyframes isn't affected.
 The animation is disabled automatically for users with
 `prefers-reduced-motion: reduce`. They see a static placeholder instead, and a
 custom `--nano-skeleton-animation` is skipped for them as well.
+
+### Forced colors
+
+In forced colors mode (such as Windows High Contrast), browsers remove
+gradient backgrounds, which would make the skeleton invisible. nano-skeleton
+opts its placeholders out of forced colors and redraws them with a neutral
+gradient mixed from the `CanvasText` and `Canvas` system colors, so they follow
+the user's palette and keep the shimmer. Text decorations that stay visible
+while loading, such as a link's underline, keep their system colors: `LinkText`
+for links and `CanvasText` for the rest.
+
+`--nano-skeleton-background-image` is ignored in this mode, since custom
+colors would bypass the user's palette. Use
+`--nano-skeleton-forced-colors-background-image` instead, and stick to
+[system colors](https://developer.mozilla.org/docs/Web/CSS/system-color). For
+example, a more prominent placeholder that uses the user's highlight color:
+
+```css
+:root {
+  --nano-skeleton-forced-colors-background-image: linear-gradient(
+    90deg,
+    GrayText 33%,
+    Highlight,
+    GrayText 66%
+  );
+}
+```
 
 ## Browser support
 
