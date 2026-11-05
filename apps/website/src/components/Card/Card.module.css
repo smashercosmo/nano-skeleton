@@ -68,6 +68,25 @@
   text-decoration: none;
 }
 
+.block {
+  inline-size: 100px;
+  block-size: 100px;
+  flex: none;
+
+  @media not (forced-colors: active) {
+    & {
+      background-color: red;
+    }
+  }
+
+  @media (forced-colors: active) {
+    & {
+      forced-color-adjust: none;
+      background-color: AccentColor;
+    }
+  }
+}
+
 @container (max-width: 34rem) {
   .layout {
     flex-direction: column;
