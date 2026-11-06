@@ -1,3 +1,4 @@
+import type { InlineMode } from "nano-skeleton";
 import type {
   ReactNode,
   ImgHTMLAttributes,
@@ -19,6 +20,8 @@ export interface Props {
     /** Keeps the link focusable while loading */
     interactive?: boolean;
   }>;
+  /** How the title and description are drawn while loading */
+  inline?: InlineMode;
 }
 
 export function Card(props: Readonly<Props>) {
@@ -36,18 +39,20 @@ export function Card(props: Readonly<Props>) {
         <div className={styles["content"]}>
           {props.title !== undefined && (
             <h2 className={styles["title"]}>
-              <nano-skeleton>{props.title}</nano-skeleton>
+              <nano-skeleton inline={props.inline}>{props.title}</nano-skeleton>
             </h2>
           )}
           {props.description !== undefined && (
             <p className={styles["description"]}>
-              <nano-skeleton>{props.description}</nano-skeleton>
+              <nano-skeleton inline={props.inline}>
+                {props.description}
+              </nano-skeleton>
             </p>
           )}
           {props.link && (
             <div>
               <nano-skeleton
-                inline
+                inline="lines-bg-per-line"
                 interactive={props.link.interactive ?? false}
               >
                 <a className={styles["link"]} href={props.link.href}>

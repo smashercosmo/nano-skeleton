@@ -21,4 +21,14 @@ export default defineConfig({
   },
   sortPackageJson: false,
   trailingComma: "all",
+
+  "overrides": [
+    {
+      "files": ["**/nano-skeleton/src/styles.css"],
+      "options": {
+        /** I don't want line wrapping in this file */
+        "printWidth": 150,
+      },
+    },
+  ],
 });

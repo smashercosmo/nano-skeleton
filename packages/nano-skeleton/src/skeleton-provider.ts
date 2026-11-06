@@ -17,8 +17,8 @@ export class SkeletonProvider extends HTMLElement {
   public constructor() {
     super();
     /**
-     * Adding listener from the constructor so the provider is ready
-     * before any descendant connects and asks for context.
+     * Adding listener from the constructor so the provider is ready before any
+     * descendant connects and asks for context.
      */
     this.addEventListener(
       "context-request",

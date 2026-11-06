@@ -1,3 +1,5 @@
+import type { InlineMode } from "nano-skeleton";
+
 import { Skeleton, SkeletonProvider } from "nano-skeleton";
 import { useEffect, useState } from "react";
 
@@ -7,15 +9,32 @@ import { HeaderLeft } from "#components/Header/Header.js";
 import styles from "#root/App.module.css";
 
 Skeleton.define();
-SkeletonProvider.define()
+SkeletonProvider.define();
 
 export function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [direction, setDirection] = useState<"ltr" | "rtl">("ltr");
+  const [radius, setRadius] = useState(1);
+  const [fontSize, setFontSize] = useState(16);
+  const [inlineMode, setInlineMode] = useState<InlineMode>("lines-bg-per-line");
 
   useEffect(() => {
     document.documentElement.dir = direction;
   }, [direction]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--nano-skeleton-inline-border-radius",
+      String(radius),
+    );
+  }, [radius]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--demo-font-size",
+      `${fontSize}px`,
+    );
+  }, [fontSize]);
 
   return (
     <div>
@@ -29,10 +48,17 @@ export function App() {
             currentState === "ltr" ? "rtl" : "ltr",
           );
         }}
+        radius={radius}
+        onRadiusChange={setRadius}
+        fontSize={fontSize}
+        onFontSizeChange={setFontSize}
+        inlineMode={inlineMode}
+        onInlineModeChange={setInlineMode}
       />
       <div className={styles["root"]}>
         <nano-skeleton-provider loading={isLoading}>
           <Card
+            inline={inlineMode}
             media={<img width="1600" height="1200" src={previewImage} alt="" />}
             title={
               <>
@@ -57,6 +83,7 @@ export function App() {
         </nano-skeleton-provider>
         <nano-skeleton-provider loading={isLoading}>
           <Card
+            inline={inlineMode}
             media={
               <video id="video" controls width={400}>
                 <source

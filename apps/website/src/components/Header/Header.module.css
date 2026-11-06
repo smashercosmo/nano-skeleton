@@ -17,3 +17,11 @@
   line-height: 1;
   cursor: pointer;
 }
+
+.slider {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  font-size: 0.6rem;
+  line-height: 1;
+}
