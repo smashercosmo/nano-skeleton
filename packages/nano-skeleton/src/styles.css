@@ -2,10 +2,13 @@
   --nano-skeleton-animation: inherit;
   --nano-skeleton-background-image: inherit;
   --nano-skeleton-background-size: inherit;
-  --nano-skeleton-text-border-radius: inherit;
+  --nano-skeleton-inline-border-radius: inherit;
   --nano-skeleton-forced-colors-background-image: inherit;
+  --nano-skeleton-letter-spacing: inherit;
 
-  --nano-skeleton-text-border-radius-default: 0.375rem;
+  --nano-skeleton-letter-spacing-default: 0;
+  --nano-skeleton-inline-border-radius-default: 1;
+
   --nano-skeleton-animation-default: shimmer 2s infinite ease-in-out;
   --nano-skeleton-background-size-default: 300%;
   --nano-skeleton-background-image-default: linear-gradient(
@@ -40,20 +43,11 @@
   opacity: 0 !important;
 }
 
-/**
- * Skeleton's content is just an inline text
- */
 :scope[loading][inline] {
   display: inline;
-  border-radius: var(
-    --nano-skeleton-text-border-radius,
-    var(--nano-skeleton-text-border-radius-default)
-  );
   box-decoration-break: clone;
   text-decoration-skip-ink: none;
-  text-box: cap alphabetic;
   /**
-   * This ensures the ellipsis on truncated text is also hidden.
    * -webkit-text-fill-color overrides any "color" property that is also set.
    */
   -webkit-text-fill-color: transparent;
@@ -61,6 +55,23 @@
    * Text might get visible when selected
    */
   user-select: none;
+
+  /**
+   * The radius is a fraction of a fully rounded end: half the bar height.
+   * The bar is trimmed to the cap height, or, where text-box isn't
+   * supported, it's the whole content area, roughly 1.2em tall.
+   */
+  @supports (text-box: cap alphabetic) {
+    border-radius: calc(var(--nano-skeleton-inline-border-radius, var(--nano-skeleton-inline-border-radius-default)) * 0.5cap);
+  }
+
+  @supports not (text-box: cap alphabetic) {
+    border-radius: calc(var(--nano-skeleton-inline-border-radius, var(--nano-skeleton-inline-border-radius-default)) * 0.6em);
+  }
+
+  &:is([inline="lines-bg-per-line"]) {
+    text-box: cap alphabetic;
+  }
 }
 
 /**
@@ -73,22 +84,88 @@
   text-box: inherit;
 }
 
+/**
+ * All modes except "lines-bg-per-line" draw the text with a built-in font
+ * whose glyphs are solid bars from the baseline to the cap height, and clip
+ * the background to those glyphs. "lines-bg-per-block" uses a font where
+ * spaces are bars too, so each line becomes one bar. The "words-" modes use a
+ * font where spaces are gaps and each word becomes a pill.
+ */
+:scope[loading]:is([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
+  /**
+   * The bar shapes come from the glyphs, so the box needs
+   * no rounding and no cap-height trimming
+   */
+  text-box: normal;
+  border-radius: 0;
+  /**
+   * Synthetic bold and italic would widen or skew the bars
+   */
+  font-synthesis: none !important;
+  /**
+   * The bars use an average glyph width, so they can be fine-tuned
+   * for fonts that are notably wider or narrower
+   */
+  letter-spacing: var(--nano-skeleton-letter-spacing, var(--nano-skeleton-letter-spacing-default));
+  background-clip: text;
+  /**
+   * The font's ascent and descent differ from the surrounding font's, so
+   * baseline alignment could make the line box a pixel taller. Aligned to
+   * the top, each line has the same line-height as the line it sits in, so
+   * it fits exactly.
+   */
+  vertical-align: top;
+}
+
+:scope[loading]:is([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) * {
+  font-family: inherit !important;
+  font-synthesis: inherit !important;
+  font-variant-ligatures: inherit !important;
+  font-feature-settings: inherit !important;
+  font-variation-settings: inherit !important;
+  letter-spacing: inherit !important;
+}
+
+/**
+ * An inline element is split into one box per line, and each gets its own
+ * gradient. As an inline-block, the skeleton is a single box around all of
+ * its lines, so one gradient is masked by the glyphs and the shimmer sweeps
+ * every line in sync.
+ */
+:scope[loading]:is([inline="lines-bg-per-block"], [inline="words-bg-per-block"]) {
+  display: inline-block;
+}
+
+:scope[loading][inline="lines-bg-per-block"] {
+  font-family: nano-skeleton-font-lines;
+}
+
+/**
+ * The pill shapes come from "contextual alternates" in the font
+ * (https://typenetwork.com/articles/opentype-at-work-contextual-alternates).
+ */
+:scope[loading]:is([inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
+  font-family: nano-skeleton-font-words;
+  font-variant-ligatures: contextual;
+  font-feature-settings: normal;
+  /**
+   * The font's "RADI" axis rounds the pill ends: from 0 (square)
+   * to 1 (fully rounded), relative to the bar height
+   */
+  font-variation-settings: "RADI" var(--nano-skeleton-inline-border-radius, var(--nano-skeleton-inline-border-radius-default));
+}
+
 :scope[loading] > :is(video, img):only-child {
   content: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7") !important;
 }
 
 :scope[loading][inline],
 :scope[loading]:not([inline]) > * {
-  background-size: var(
-    --nano-skeleton-background-size,
-    var(--nano-skeleton-background-size-default)
-  ) !important;
+  background-size: var(--nano-skeleton-background-size, var(--nano-skeleton-background-size-default)) !important;
+  background-color: transparent !important;
 
   @media not (forced-colors: active) {
-    background-image: var(
-      --nano-skeleton-background-image,
-      var(--nano-skeleton-background-image-default)
-    ) !important;
+    background-image: var(--nano-skeleton-background-image, var(--nano-skeleton-background-image-default)) !important;
   }
 
   /**
@@ -98,17 +175,11 @@
    */
   @media (forced-colors: active) {
     forced-color-adjust: none;
-    background-image: var(
-      --nano-skeleton-forced-colors-background-image,
-      var(--nano-skeleton-forced-colors-background-image-default)
-    ) !important;
+    background-image: var(--nano-skeleton-forced-colors-background-image, var(--nano-skeleton-forced-colors-background-image-default)) !important;
   }
 
   @media not (prefers-reduced-motion: reduce) {
-    animation: var(
-      --nano-skeleton-animation,
-      var(--nano-skeleton-animation-default)
-    ) !important;
+    animation: var(--nano-skeleton-animation, var(--nano-skeleton-animation-default)) !important;
   }
 }
 

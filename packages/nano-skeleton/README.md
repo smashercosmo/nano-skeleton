@@ -162,6 +162,59 @@ a `<span>`:
 </nano-skeleton>
 ```
 
+#### Inline styles
+
+The value of `inline` picks how the text is drawn while loading. It combines
+two choices: one bar per line or one pill per word, and one gradient per line
+or one gradient for the whole block.
+
+| `inline` value                    | Looks like                                                             |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| `lines-bg-per-line` (the default) | One rounded bar per line, each with its own gradient.                  |
+| `lines-bg-per-block`              | One bar per line, with a single gradient shimmering across all lines.  |
+| `words-bg-per-line`               | One pill per word, with a gradient per line.                           |
+| `words-bg-per-block`              | One pill per word, with a single gradient shimmering across all lines. |
+
+A bare `inline`, an automatically detected inline mode, or an unknown value all
+mean `lines-bg-per-line`.
+
+```html
+<p>
+  <nano-skeleton inline="words-bg-per-block">
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  </nano-skeleton>
+</p>
+```
+
+The default mode draws the bars as backgrounds of the text lines. All other
+modes draw the text with a built-in font in which every character is a solid
+bar from the baseline to the cap height (spaces too in `lines-bg-per-block`,
+while in the `words-` modes they're gaps), and clip the background to it. The
+bars are the same height in every browser, including those without
+`text-box-trim`. The fonts are 1-2KB each, embedded in the package, and only
+registered once a skeleton that uses them appears.
+
+The bars use an average glyph width, so text can wrap a little differently
+than the real text: the placeholder approximates its shape rather than matching
+it exactly. The height of each line doesn't change. To make the bars longer or
+shorter for a notably wide or narrow font, adjust
+`--nano-skeleton-letter-spacing` (values from about `-0.1em` to `0.2em` keep
+the bars solid).
+
+Things to keep in mind:
+
+- `--nano-skeleton-inline-border-radius` sets how round the bar ends are, from `0`
+  (square) to `1` (fully rounded, the default). It's relative to the bar
+  height, so the shape stays the same at any font size. In the `words-` modes
+  the pill ends come from the font, which has a matching variation axis.
+- In `lines-bg-per-block` the ends of each line can't be rounded, so
+  `--nano-skeleton-inline-border-radius` doesn't apply there and the bars are square.
+- In the `-bg-per-block` modes the skeleton becomes a single `inline-block`
+  box around all of its lines, which is what lets one gradient span them.
+  The skeleton should then be the only content of its block, e.g. the whole
+  text of a paragraph or heading, as recommended above. Text before it on the
+  same line would push the whole skeleton onto the next line.
+
 ### Element mode
 
 If the skeleton contains elements, it becomes `display: contents` (it doesn't
@@ -351,6 +404,7 @@ import type {
   SkeletonProvider,
   COMPONENT_NAME,
   PROVIDER_NAME,
+  InlineMode,
 } from "nano-skeleton";
 import type { DetailedHTMLProps, HTMLAttributes } from "react";
 
@@ -362,7 +416,7 @@ declare module "react" {
         Skeleton
       > & {
         interactive?: boolean;
-        inline?: boolean;
+        inline?: InlineMode;
       };
       [PROVIDER_NAME]: DetailedHTMLProps<
         HTMLAttributes<SkeletonProvider>,
@@ -398,10 +452,10 @@ While loading, the provider is exposed to assistive technology as
 
 ### `<nano-skeleton>`
 
-| Attribute / property | Type      | Description                                                                                                   |
-| -------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
-| `interactive`        | `boolean` | Keeps the content focusable and clickable while loading. See [Interactive skeletons](#interactive-skeletons). |
-| `inline`             | `boolean` | Forces inline mode, e.g. for text inside a link. See [Text wrapped in elements](#text-wrapped-in-elements).   |
+| Attribute / property | Type         | Description                                                                                                                                                                  |
+| -------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `interactive`        | `boolean`    | Keeps the content focusable and clickable while loading. See [Interactive skeletons](#interactive-skeletons).                                                                |
+| `inline`             | `InlineMode` | Forces inline mode, e.g. for text inside a link, and picks how text is drawn. See [Text wrapped in elements](#text-wrapped-in-elements) and [Inline styles](#inline-styles). |
 
 The component also manages these attributes itself, which you can use as
 styling hooks:
@@ -415,6 +469,8 @@ styling hooks:
 ### Exports
 
 ```ts
+import type { InlineMode } from "nano-skeleton"; // values of the `inline` attribute
+
 import {
   Skeleton, // <nano-skeleton> class
   SkeletonProvider, // <nano-skeleton-provider> class
@@ -427,12 +483,14 @@ import {
 
 The look is controlled by CSS custom properties:
 
-| Property                                         | Default                                                                                   |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| `--nano-skeleton-background-image`               | A light/dark-aware horizontal gradient                                                    |
-| `--nano-skeleton-background-size`                | `300%`                                                                                    |
-| `--nano-skeleton-animation`                      | `shimmer 2s infinite ease-in-out`                                                         |
-| `--nano-skeleton-forced-colors-background-image` | A gray gradient mixed from `CanvasText` and `Canvas` system colors, see [Forced colors](#forced-colors) |
+| Property                                         | Default                                                                                                                                        |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--nano-skeleton-background-image`               | A light/dark-aware horizontal gradient                                                                                                         |
+| `--nano-skeleton-background-size`                | `300%`                                                                                                                                         |
+| `--nano-skeleton-animation`                      | `shimmer 2s infinite ease-in-out`                                                                                                              |
+| `--nano-skeleton-forced-colors-background-image` | A gray gradient mixed from `CanvasText` and `Canvas` system colors, see [Forced colors](#forced-colors)                                        |
+| `--nano-skeleton-letter-spacing`                 | `0`, extra space per character in the [font-based inline styles](#inline-styles)                                                               |
+| `--nano-skeleton-inline-border-radius`                    | `1`, roundness of the text bar ends, from `0` (square) to `1` (fully rounded), relative to the bar height. See [Inline styles](#inline-styles) |
 
 Each `<nano-skeleton>` inherits these from its ancestors, so set them on a
 parent element (or on `:root` to change all skeletons at once), not on the
@@ -447,10 +505,10 @@ parent element (or on `:root` to change all skeletons at once), not on the
 /* Brand-colored shimmer for skeletons inside .card */
 .card {
   --nano-skeleton-background-image: linear-gradient(
-    90deg,
-    light-dark(#e0e7ff, #1e1b4b) 33%,
-    light-dark(#eef2ff, #312e81),
-    light-dark(#e0e7ff, #1e1b4b) 66%
+          90deg,
+          light-dark(#e0e7ff, #1e1b4b) 33%,
+          light-dark(#eef2ff, #312e81),
+          light-dark(#e0e7ff, #1e1b4b) 66%
   );
 }
 
@@ -460,13 +518,14 @@ parent element (or on `:root` to change all skeletons at once), not on the
     opacity: 0.5;
   }
 }
+
 .pulse {
   --nano-skeleton-animation: pulse 1.5s infinite ease-in-out;
 }
 
 /* Square text bars */
 .table {
-  --nano-skeleton-text-border-radius: 0;
+  --nano-skeleton-inline-border-radius: 0;
 }
 ```
 
