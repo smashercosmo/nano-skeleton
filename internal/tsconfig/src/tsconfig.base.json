@@ -26,8 +26,12 @@
      * A non-composite project can still safely reference a composite project.
      */
     "noEmit": true,
+    /**
+     * Every project must set its own "tsBuildInfoFile". A relative path here
+     * resolves against this file, so all projects would share one build info
+     * file and overwrite each other's.
+     */
     "incremental": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
 
     /**
      * "strict" setting is now "true" by default.

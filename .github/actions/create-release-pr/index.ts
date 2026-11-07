@@ -33,17 +33,6 @@ try {
     "user.email",
     `${botUser.id}+${bot}@users.noreply.github.com`,
   ]);
-  // Silent, so the command line with the token isn't echoed to the log
-  await exec(
-    "git",
-    [
-      "remote",
-      "set-url",
-      "origin",
-      `https://x-access-token:${token}@github.com/${owner}/${repo}.git`,
-    ],
-    { silent: true },
-  );
   await exec("git", ["switch", "-C", branch]);
 
   const { stdout: planOutput } = await getExecOutput("pnpm", [
@@ -87,6 +76,21 @@ try {
 
   await exec("git", ["add", "-A"]);
   await exec("git", ["commit", "-m", title]);
+  /**
+   * The token goes into the remote URL only now, so `pnpm version` and oxfmt
+   * above never run while it's stored in .git/config. Silent, so the command
+   * line with the token isn't echoed to the log
+   */
+  await exec(
+    "git",
+    [
+      "remote",
+      "set-url",
+      "origin",
+      `https://x-access-token:${token}@github.com/${owner}/${repo}.git`,
+    ],
+    { silent: true },
+  );
   await exec("git", ["push", "--force", "origin", branch]);
 
   const { data: pulls } = await octokit.rest.pulls.list({

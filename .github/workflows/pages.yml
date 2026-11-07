@@ -1,47 +1,59 @@
-name: Deploy website to GitHub Pages
+name: Deploy docs to GitHub Pages
 
+# Deploys when a release is published, so the docs always match the version
+# on npm. The release workflow creates draft releases, and publishing a draft
+# (by a person, not a token) triggers this. Running it manually redeploys the
+# checked out ref, e.g. a release tag
+#
+# The github-pages environment must allow deployments from release tags:
+# Settings → Environments → github-pages → Deployment branches and tags
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+permissions: {}
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
+  # Runs dependency code during install and build, so it only gets read access
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
     steps:
-      - uses: actions/checkout@v4
-
-      # Uses the pnpm version from "packageManager" in package.json
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
         with:
-          node-version: 26
-          cache: pnpm
+          persist-credentials: false
 
-      - run: pnpm install --frozen-lockfile
+      # Installs pnpm from "packageManager" and Node from "devEngines.runtime"
+      # in package.json, then runs `pnpm install --frozen-lockfile`
+      - uses: pnpm/setup@v3
+        with:
+          cache: true
+          require-lockfile: true
 
-      # Builds nano-skeleton first, then the website that depends on it
-      - run: pnpm --filter website... build
+      # Builds nano-skeleton first, then the docs site that depends on it
+      - run: pnpm --filter docs... build
+        env:
+          ASTRO_TELEMETRY_DISABLED: 1
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/website/dist
+          path: apps/docs/dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

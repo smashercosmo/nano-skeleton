@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      ASTRO_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Installs pnpm from "packageManager" and Node from "devEngines.runtime"
+      # in package.json, then runs `pnpm install --frozen-lockfile`
+      - uses: pnpm/setup@v3
+        with:
+          cache: true
+          require-lockfile: true
+
+      # Before type-checking: the apps get nano-skeleton's types from its dist
+      - name: Build
+        run: pnpm build
+
+      - name: Lint and type-check
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm exec oxfmt --check

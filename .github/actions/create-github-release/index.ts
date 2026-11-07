@@ -147,6 +147,20 @@ try {
     .array(WorkspacePackageSchema)
     .parse(JSON.parse(workspacePackagesOutput));
 
+  /**
+   * Tags are "v<version>", which is only unique with one public package. More
+   * packages need "<name>@<version>" tags, which would break the existing tag
+   * history, so fail instead of creating clashing tags
+   */
+  const publicPackages = workspacePackages.filter(
+    ({ private: isPrivate, version }) => !isPrivate && version !== undefined,
+  );
+  if (publicPackages.length > 1) {
+    throw new Error(
+      `"v<version>" tags only work with one public package, found ${publicPackages.length}: ${publicPackages.map(({ name }) => name).join(", ")}`,
+    );
+  }
+
   const request = createGitHubClient(token);
 
   const existingTags = new Set(await getExistingTags(request));
