@@ -28,7 +28,6 @@
     "@internal/tsconfig": "workspace:*",
     "@tsdown/css": "catalog:dev",
     "@types/node": "catalog:types",
-    "bumpp": "catalog:dev",
     "rolldown": "catalog:dev",
     "tsdown": "catalog:dev"
   },

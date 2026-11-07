@@ -1,0 +1,75 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+
+const variants = [
+  { className: "", title: "Default" },
+  { className: "brand", title: "Brand colors" },
+  { className: "pulse", title: "Pulse animation" },
+  { className: "square", title: "Square text bars" },
+  { className: "wide", title: "Background size 100%" },
+  { className: "fast", title: "Faster shimmer" },
+];
+---
+
+<DemoFrame label="Customization demo">
+  <nano-skeleton-provider class="grid">
+    {
+      variants.map(({ className, title }) => (
+        <div class:list={["card", className]}>
+          <strong>
+            <nano-skeleton>{title}</nano-skeleton>
+          </strong>
+          <p>
+            <nano-skeleton>
+              The quick brown fox jumps over the lazy dog, twice.
+            </nano-skeleton>
+          </p>
+        </div>
+      ))
+    }
+  </nano-skeleton-provider>
+</DemoFrame>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+  }
+
+  .brand {
+    --nano-skeleton-background-image: linear-gradient(
+      90deg,
+      light-dark(#e0e7ff, #1e1b4b) 33%,
+      light-dark(#eef2ff, #312e81),
+      light-dark(#e0e7ff, #1e1b4b) 66%
+    );
+  }
+
+  .pulse {
+    --nano-skeleton-animation: pulse 1.5s infinite ease-in-out;
+  }
+
+  .square {
+    --nano-skeleton-inline-border-radius: 0;
+  }
+
+  .wide {
+    --nano-skeleton-background-size: 100%;
+  }
+
+  .fast {
+    --nano-skeleton-animation: shimmer 0.8s infinite ease-in-out;
+  }
+</style>

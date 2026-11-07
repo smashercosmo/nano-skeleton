@@ -1,0 +1,59 @@
+---
+/**
+ * A demo with its own loading controls. The "Loading" switch toggles every
+ * provider inside the stage. "Simulate fetch" turns them all on, then each one
+ * finishes after its `data-delay` (ms, default 1500, "random" for 500–2500).
+ */
+interface Props {
+  label: string;
+  class?: string;
+}
+
+const { label, class: className } = Astro.props;
+---
+
+<section class:list={["demo", className]} aria-label={label} data-demo>
+  <div class="demo__bar">
+    <label class="demo__switch">
+      <input type="checkbox" switch role="switch" data-loading-toggle />
+      Loading
+    </label>
+    <button type="button" class="button" data-simulate>Simulate fetch</button>
+    <slot name="controls" />
+  </div>
+  <div class="demo__stage" data-stage>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .demo {
+    margin: 0 0 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: clip;
+  }
+
+  .demo__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.85rem;
+  }
+
+  .demo__switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .demo__stage {
+    padding: 1.25rem;
+  }
+</style>

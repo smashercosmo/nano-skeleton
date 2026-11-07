@@ -1,0 +1,123 @@
+---
+const options = ["auto", "light", "dark"] as const;
+---
+
+<fieldset class="theme-switcher">
+  <legend class="visually-hidden">Color theme</legend>
+  {
+    options.map((value) => (
+      <label>
+        <input
+          type="radio"
+          name="theme"
+          value={value}
+          checked={value === "auto"}
+        />
+        <span>{value}</span>
+      </label>
+    ))
+  }
+</fieldset>
+<script is:inline>
+  /**
+   * Runs right after the switcher is parsed, before the first paint. The theme
+   * itself is applied by CSS (:root:has(... :checked)), this only restores
+   * and persists the choice.
+   */
+  (() => {
+    const KEY = "__color_scheme__";
+    const THEMES = new Set(["light", "dark", "auto"]);
+    const switcher = document.querySelector(".theme-switcher");
+
+    function save(theme) {
+      try {
+        localStorage.setItem(KEY, THEMES.has(theme) ? theme : "auto");
+      } catch {
+        /* Storage is unavailable, the choice lasts until reload */
+      }
+    }
+
+    function load() {
+      try {
+        const theme = localStorage.getItem(KEY);
+        return theme === "light" || theme === "dark" ? theme : "auto";
+      } catch {
+        return "auto";
+      }
+    }
+
+    /** Checks the radio button that matches the theme */
+    function select(theme) {
+      for (const input of switcher.querySelectorAll("input")) {
+        input.checked = input.value === theme;
+      }
+    }
+
+    /** Updates the stored value when the user switches the theme */
+    switcher.addEventListener("change", (event) => save(event.target.value));
+
+    /**
+     * The theme was changed in a different tab. The `storage` event only
+     * fires in the OTHER tabs, the switcher there has to be updated by hand.
+     */
+    globalThis.addEventListener("storage", (event) => {
+      if (event.key === KEY && THEMES.has(event.newValue)) {
+        select(event.newValue);
+      }
+    });
+
+    /**
+     * The system theme changed while the page is open: the system wins. Drop
+     * any pinned Light/Dark and go back to Auto.
+     */
+    matchMedia("(prefers-color-scheme: dark)").addEventListener(
+      "change",
+      () => {
+        save("auto");
+        select("auto");
+      },
+    );
+
+    select(load());
+  })();
+</script>
+
+<style>
+  .theme-switcher {
+    display: inline-flex;
+    margin: 0;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.8rem;
+  }
+
+  label {
+    position: relative;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    cursor: pointer;
+    text-transform: capitalize;
+  }
+
+  label:has(:checked) {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  label:has(:focus-visible) {
+    outline: 2px solid var(--accent);
+  }
+
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (max-width: 40rem) {
+    .theme-switcher {
+      margin-inline-start: auto;
+    }
+  }
+</style>

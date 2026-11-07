@@ -1,0 +1,25 @@
+{
+  "name": "docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint:types": "astro sync && tsc -b"
+  },
+  "imports": {
+    "#root/*": "./src/*",
+    "#components/*": "./src/components/*",
+    "#content/*": "./src/content/*"
+  },
+  "dependencies": {
+    "astro": "catalog:dev",
+    "microlighter": "catalog:ui",
+    "nano-skeleton": "workspace:*"
+  },
+  "devDependencies": {
+    "@internal/tsconfig": "workspace:*",
+    "@types/node": "catalog:types"
+  }
+}

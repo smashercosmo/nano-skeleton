@@ -1,0 +1,77 @@
+---
+import ThemeSwitcher from "#components/theme-switcher.astro";
+import { NPM_URL, REPO_URL, VERSION, withBase } from "#root/site.js";
+---
+
+<header class="header">
+  <a class="logo" href={withBase()} aria-label="nano-skeleton, home">
+    <span>nano</span><nano-skeleton-provider class="logo__provider" loading
+      ><nano-skeleton class="logo__skeleton">skeleton</nano-skeleton
+      ></nano-skeleton-provider
+    >
+  </a>
+  <a class="badge" href={withBase("changelog")} title="Changelog">v{VERSION}</a>
+  <nav class="nav" aria-label="Main">
+    <a href={withBase()}>Docs</a>
+    <a href={withBase("changelog")}>Changelog</a>
+    <a href={REPO_URL}>GitHub</a>
+    <a href={NPM_URL}>npm</a>
+  </nav>
+  <ThemeSwitcher />
+</header>
+
+<style>
+  .header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
+  }
+
+  .logo {
+    color: var(--fg);
+    font-size: 1.35rem;
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    text-decoration: none;
+  }
+
+  .logo__skeleton {
+    font-weight: 750;
+    color: var(--accent);
+  }
+
+  /* Before the element is defined, look like a skeleton already */
+  .logo__skeleton:not(:defined) {
+    border-radius: 0.375rem;
+    background: var(--border);
+    color: transparent;
+  }
+
+  .nav {
+    display: flex;
+    gap: 1rem;
+    margin-inline-start: auto;
+    font-size: 0.95rem;
+  }
+
+  .nav a {
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .nav a:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 40rem) {
+    .nav {
+      order: 1;
+      flex-basis: 100%;
+      margin-inline-start: 0;
+    }
+  }
+</style>

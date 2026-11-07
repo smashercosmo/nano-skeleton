@@ -1,0 +1,164 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+import { withBase } from "#root/site.js";
+
+/** Sources that fail to load, without a request: no 404 noise in the console */
+const BROKEN_IMAGE = "data:image/png;base64,broken";
+const BROKEN_VIDEO = "data:video/webm;base64,broken";
+
+const VIDEO_URL =
+  "https://developer.mozilla.org/shared-assets/videos/flower.webm";
+---
+
+<DemoFrame label="Element mode demo">
+  <nano-skeleton-provider class="grid">
+    <figure>
+      <nano-skeleton>
+        <img
+          class="media"
+          src={withBase("cover.svg")}
+          width="400"
+          height="300"
+          alt="Mountains at sunset"
+        />
+      </nano-skeleton>
+      <figcaption>Image</figcaption>
+    </figure>
+    <figure>
+      <nano-skeleton>
+        <video class="media" controls preload="none" width="400" height="300">
+          <source src={VIDEO_URL} type="video/webm" />
+        </video>
+      </nano-skeleton>
+      <figcaption>Video</figcaption>
+    </figure>
+    <figure class="boxes">
+      <nano-skeleton>
+        <img
+          class="avatar"
+          src={withBase("cover.svg")}
+          width="56"
+          height="56"
+          alt=""
+        />
+      </nano-skeleton>
+      <nano-skeleton><button type="button" class="button">Follow</button></nano-skeleton>
+      <nano-skeleton><span class="pill">New</span></nano-skeleton>
+      <figcaption>Avatar, button, badge</figcaption>
+    </figure>
+  </nano-skeleton-provider>
+</DemoFrame>
+
+<DemoFrame label="Broken sources demo">
+  <div class="grid">
+    <figure>
+      <div class="pair">
+        <img
+          class="media"
+          src={BROKEN_IMAGE}
+          width="400"
+          height="300"
+          alt="Broken image"
+        />
+        <video
+          class="media"
+          src={BROKEN_VIDEO}
+          controls
+          preload="metadata"
+          width="400"
+          height="300"></video>
+      </div>
+      <figcaption>Without skeleton: broken icon and alt text</figcaption>
+    </figure>
+    <nano-skeleton-provider>
+      <figure>
+        <div class="pair">
+          <nano-skeleton>
+            <img
+              class="media"
+              src={BROKEN_IMAGE}
+              width="400"
+              height="300"
+              alt="Broken image"
+                />
+          </nano-skeleton>
+          <nano-skeleton>
+            <video
+              class="media"
+              src={BROKEN_VIDEO}
+              controls
+              preload="metadata"
+              width="400"
+              height="300"></video>
+          </nano-skeleton>
+        </div>
+        <figcaption>With skeleton: a clean placeholder</figcaption>
+      </figure>
+    </nano-skeleton-provider>
+  </div>
+</DemoFrame>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  figcaption {
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .media {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    background: transparent;
+  }
+
+  video.media {
+    background: #000;
+  }
+
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .boxes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .boxes figcaption {
+    flex-basis: 100%;
+  }
+
+  .avatar {
+    display: block;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 0.1rem 0.6rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+</style>

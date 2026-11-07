@@ -1,0 +1,31 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+---
+
+<DemoFrame label="Inline mode demo">
+  <nano-skeleton-provider class="text">
+    <h3><nano-skeleton>Lorem ipsum dolor sit amet</nano-skeleton></h3>
+    <p>
+      <nano-skeleton>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit,<br />
+        sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+        enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+      </nano-skeleton>
+    </p>
+  </nano-skeleton-provider>
+</DemoFrame>
+
+<style>
+  .text {
+    display: block;
+    max-width: 36rem;
+  }
+
+  h3 {
+    margin: 0 0 0.5rem;
+  }
+
+  p {
+    margin: 0 0 0.75rem;
+  }
+</style>

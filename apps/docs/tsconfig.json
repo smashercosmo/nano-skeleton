@@ -1,0 +1,8 @@
+{
+  "extends": "@internal/tsconfig/dom",
+  "compilerOptions": {
+    "tsBuildInfoFile": "node_modules/tsconfig.tsbuildinfo",
+    "types": ["node", "astro/client"]
+  },
+  "include": [".astro/types.d.ts", "src/**/*.ts", "astro.config.ts"]
+}

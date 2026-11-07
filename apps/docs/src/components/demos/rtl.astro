@@ -1,0 +1,43 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+---
+
+<DemoFrame label="Right-to-left demo">
+  <nano-skeleton-provider class="grid">
+    <div dir="ltr">
+      <span class="caption">dir="ltr": shimmer moves left to right</span>
+      <p>
+        <nano-skeleton>
+          Text that wraps over several lines, so you can see the shimmer travel
+          across every bar.
+        </nano-skeleton>
+      </p>
+    </div>
+    <div dir="rtl" lang="ar">
+      <span class="caption">dir="rtl": يتحرك اللمعان من اليمين إلى اليسار</span>
+      <p>
+        <nano-skeleton>
+          نص تجريبي طويل يلتف على عدة أسطر حتى تتمكن من رؤية اللمعان وهو يتحرك
+          عبر كل سطر.
+        </nano-skeleton>
+      </p>
+    </div>
+  </nano-skeleton-provider>
+</DemoFrame>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 1.5rem;
+  }
+
+  .caption {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+  }
+</style>
