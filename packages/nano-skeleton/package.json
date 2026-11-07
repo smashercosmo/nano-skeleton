@@ -1,6 +1,6 @@
 {
   "name": "nano-skeleton",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "A tiny, framework-agnostic skeleton loader built on Web Components. Turns your real UI into placeholders of the same shape, with no layout shift.",
   "keywords": [
     "skeleton",

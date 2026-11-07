@@ -2,6 +2,10 @@ nano-skeleton@0.1.1:
   dir: packages/nano-skeleton
   intents:
     - old-bottles-yell
+nano-skeleton@0.10.0:
+  dir: packages/nano-skeleton
+  intents:
+    - transparent-provider-layout
 nano-skeleton@0.2.0:
   dir: packages/nano-skeleton
   intents:
