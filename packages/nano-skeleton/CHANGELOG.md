@@ -1,5 +1,61 @@
 # Changelog
 
+## 0.9.0
+
+### Minor Changes
+
+- fix: hide more of the content and keep layouts steady while loading
+
+  - `lines-bg-per-block` and `words-bg-per-block` no longer collapse lines with `line-height: normal`, the browser default
+  - In Safari, every line of inline text gets its own rounded bar and gradient: `box-decoration-break` needs the `-webkit-` prefix there
+  - Text shadows and strokes are hidden, they stayed visible as ghost text
+  - Images, SVGs and videos placed directly inside inline text are hidden. Other inline elements, such as a `<kbd>`, keep their borders and backgrounds
+  - Generated content (`::before` and `::after`) and list markers of element-mode children are hidden. The element's own box, including its border, shadow and outline, is kept
+  - An ellipsis of truncated text is clipped while loading, it was drawn on top of the placeholder
+  - The font-based inline styles keep the inherited `letter-spacing` unless `--nano-skeleton-letter-spacing` is set. Before, it was reset to `0`
+  - Custom properties can be set on the skeleton element itself, not only on its ancestors
+
+  BREAKING CHANGES:
+
+  - `--nano-skeleton-letter-spacing` replaces the inherited `letter-spacing` in the font-based inline styles, which is used when the property isn't set. Before, the default was `0`
+
+- fix: stop overriding the page's own `shimmer` keyframes
+
+  - The built-in keyframes were named `shimmer`, a common name, and replaced any `@keyframes shimmer` of the page, breaking its own animations. They're now named `nano-skeleton-shimmer` and defined outside of `@scope`
+  - A custom `--nano-skeleton-animation` can reuse them, e.g. `nano-skeleton-shimmer 1s infinite ease-in-out`
+
+  BREAKING CHANGES:
+
+  - A `--nano-skeleton-animation` that references `shimmer` has to use `nano-skeleton-shimmer` instead
+
+- fix: make the skeleton lifecycle robust
+
+  - A skeleton that was moved twice, or added and removed again, within the same task stayed subscribed to its provider after being removed. Skeletons now connect synchronously, and subscribe only while connected
+  - Skeletons work after being moved to another document, e.g. an iframe's: the styles and fonts are added to that document. Before, adopting the styles failed with an error
+  - Providers defined after their skeletons are found: a connecting provider asks skeletons without a provider to request the loading state again, following the Context Protocol
+  - `inline`, `interactive` and the provider's `loading`, set as properties before the elements are defined, are no longer lost
+  - Automatically detected inline mode is switched off again when the text is replaced with elements. An `inline` attribute set by the author is kept
+  - An `inert` attribute set by the author is no longer removed when loading ends
+
+  BREAKING CHANGES:
+
+  - The `loading` property of `<nano-skeleton>` is read-only. The loading state is set by the provider, and setting it on a skeleton showed a placeholder without making it inert
+
+### Patch Changes
+
+- fix: keep media sizes steadier while loading
+
+  - Media in a tight flex or grid row no longer shrinks while loading. Safari is the exception, as it doesn't use the remembered size there: give such media `flex-shrink: 0`
+  - Images that haven't been rendered yet no longer get a 300×150 placeholder, which images don't have by default: they have no size until they're rendered. Videos keep the default 300×150, and iframes, embeds and objects get it too, with their contents hidden while loading
+  - An image inside a `<picture>` or a link becomes the placeholder itself. Before, the placeholder was a thin bar as tall as a line of text
+
+- chore: ship element types, smaller styles
+
+  - The package declares `nano-skeleton` and `nano-skeleton-provider` in `HTMLElementTagNameMap`, so `document.querySelector("nano-skeleton")` and `document.createElement("nano-skeleton")` return the element types
+  - The styles are minified: about 1.2KB instead of 3KB gzipped
+  - Declaration source maps are published, so the `.d.ts` files no longer reference missing files
+  - `sideEffects: false`, keywords and a description in package.json
+
 ## 0.8.1
 
 ### Patch Changes
