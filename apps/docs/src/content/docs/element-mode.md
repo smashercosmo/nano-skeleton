@@ -32,8 +32,19 @@ rounded avatar produces a rounded placeholder.
 
 Images and videos that only get their size from the file keep their last
 rendered size when they go back to loading, e.g. on a refetch. Before they've
-been rendered once, they fall back to 300×150, the browser's default size for
-media.
+been rendered once, images have no size and videos get the browser's default
+300×150. An image inside a `<picture>` or a link works the same way: the image
+itself becomes the placeholder.
+
+In Safari, an image in a flex row that's too narrow for its content can shrink
+while loading, as Safari doesn't use the remembered size there. Keep it from
+shrinking, which is usually what an avatar needs anyway:
+
+```css
+.avatar {
+  flex-shrink: 0;
+}
+```
 
 ### Broken sources
 

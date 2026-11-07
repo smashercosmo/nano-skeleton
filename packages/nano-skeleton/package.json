@@ -1,7 +1,17 @@
 {
   "name": "nano-skeleton",
   "version": "0.8.1",
-  "description": "The perfect skeleton component",
+  "description": "A tiny, framework-agnostic skeleton loader built on Web Components. Turns your real UI into placeholders of the same shape, with no layout shift.",
+  "keywords": [
+    "skeleton",
+    "skeleton-loader",
+    "loading",
+    "placeholder",
+    "shimmer",
+    "web-components",
+    "custom-elements",
+    "framework-agnostic"
+  ],
   "homepage": "https://smashercosmo.github.io/nano-skeleton",
   "bugs": {
     "url": "https://github.com/smashercosmo/nano-skeleton/issues"
@@ -17,19 +27,24 @@
     "CHANGELOG.md"
   ],
   "type": "module",
+  "sideEffects": false,
   "imports": {
     "#root/*": "./src/*"
   },
   "scripts": {
     "build": "tsdown",
-    "lint:types": "tsc -b"
+    "lint:types": "tsc -b",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@internal/tsconfig": "workspace:*",
     "@tsdown/css": "catalog:dev",
     "@types/node": "catalog:types",
-    "rolldown": "catalog:dev",
-    "tsdown": "catalog:dev"
+    "@vitest/browser-playwright": "catalog:test",
+    "playwright": "catalog:test",
+    "tsdown": "catalog:dev",
+    "vite": "catalog:dev",
+    "vitest": "catalog:test"
   },
   "types": "./dist/index.d.ts",
   "exports": {
