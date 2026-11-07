@@ -2,20 +2,23 @@ import css from "./styles.css?inline";
 
 const sheets = new WeakMap<Document, CSSStyleSheet>();
 
-function isDocument(node: Node): node is Document {
-  return node.nodeType === Node.DOCUMENT_NODE;
+function isDocumentOrShadowRoot(
+  node: Node | Document | ShadowRoot,
+): node is Document | ShadowRoot {
+  return "adoptedStyleSheets" in node;
 }
 
 /**
- * Adopts the stylesheet into a document or a shadow root. A constructed
- * stylesheet can only be adopted within the document it was created for, so
- * each document gets its own. Synchronous, so the styles apply as soon as a
- * skeleton connects.
+ * Adopts the stylesheet into the document or shadow root that contains the
+ * element. A constructed stylesheet can only be adopted within the document it
+ * was created for, so each document gets its own. Synchronous, so the styles
+ * apply as soon as an element connects.
  */
-function adoptStyles(root: Document | ShadowRoot) {
-  const document = isDocument(root) ? root : root.ownerDocument;
+function adoptStyles(element: Element) {
+  const root = element.getRootNode();
+  const document = element.ownerDocument;
   const window = document.defaultView;
-  if (!window) {
+  if (!isDocumentOrShadowRoot(root) || !window) {
     return;
   }
 

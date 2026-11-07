@@ -30,6 +30,17 @@ they're defined are applied once they are.
 While loading, the provider is exposed to assistive technology as
 `aria-busy="true"`. An `aria-busy` attribute you set yourself takes precedence.
 
+The provider is `display: contents` by default: it doesn't affect layout, and
+its children are laid out as children of its parent. Any style of your own
+takes precedence, e.g. to make the provider itself a grid:
+
+```css
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+```
+
 ### `<nano-skeleton>`
 
 <div class="table-wrap">
