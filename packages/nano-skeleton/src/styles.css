@@ -319,6 +319,15 @@
 }
 
 /**
+ * The provider only holds the loading state, so its children are laid out as
+ * if it weren't there. Zero specificity, so any style of the author wins, e.g.
+ * one that makes the provider a grid.
+ */
+:where(nano-skeleton-provider) {
+  display: contents;
+}
+
+/**
  * The ellipsis of truncated text is drawn by the skeleton's parent, in the
  * parent's color, so it would show on top of the placeholder. Clipping only
  * changes how the overflow is painted, not the layout.

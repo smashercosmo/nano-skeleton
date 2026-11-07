@@ -2,9 +2,8 @@ import babel from "@rolldown/plugin-babel";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defaultClientConditions, defineConfig } from "vite";
 
+/** A local test bed, not deployed, so it's served from the root */
 export default defineConfig((config) => ({
-  /** GitHub Pages serves the site from /nano-skeleton/ */
-  base: config.command === "build" ? "/nano-skeleton/" : "/",
   build: {
     /**
      * Browsers with native light-dark(). With older targets Lightning CSS

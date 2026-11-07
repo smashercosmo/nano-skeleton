@@ -12,8 +12,8 @@ import {
 } from "./helpers.js";
 
 /**
- * Attributes are asserted by value: "" when present, null when absent. Two lint
- * rules disagree on how booleans should be asserted.
+ * Attributes are asserted by value: "" when present, null when absent, which
+ * also checks that boolean attributes are set without a value
  */
 function createSkeleton(text = "Text") {
   const skeleton = document.createElement("nano-skeleton");

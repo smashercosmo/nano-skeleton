@@ -24,12 +24,6 @@ function isInlineMode(value: unknown): value is InlineMode {
   return typeof value === "string" && modes.includes(value);
 }
 
-function isDocumentOrShadowRoot(
-  node: Node | Document | ShadowRoot,
-): node is Document | ShadowRoot {
-  return "adoptedStyleSheets" in node;
-}
-
 /** Checks the node type, as `instanceof Text` fails for nodes of an iframe */
 function isNonEmptyText(node: Node) {
   return (
@@ -130,10 +124,7 @@ class Skeleton extends HTMLElement {
     this.#upgradeProperty("inline");
     this.#upgradeProperty("interactive");
 
-    const root = this.getRootNode();
-    if (isDocumentOrShadowRoot(root)) {
-      adoptStyles(root);
-    }
+    adoptStyles(this);
 
     this.#registerFont();
     this.#update();

@@ -1,6 +1,7 @@
 import type { ContextRequestEvent } from "#root/context-request-event.js";
 import type { LoadingCallback } from "#root/types.js";
 
+import { adoptStyles } from "#root/adopt-styles.js";
 import { PROVIDER_NAME, SKELETON_CONTEXT } from "#root/constants.js";
 import { ContextProviderEvent } from "#root/context-provider-event.js";
 
@@ -54,6 +55,12 @@ export class SkeletonProvider extends HTMLElement {
   }
 
   public connectedCallback() {
+    /**
+     * The provider is `display: contents` by default, so it needs the styles
+     * too, e.g. when its skeletons are all inside shadow roots
+     */
+    adoptStyles(this);
+
     /**
      * `loading` set before the element was defined is an own property that
      * shadows the accessor. Re-sets it through the accessor.

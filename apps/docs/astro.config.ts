@@ -1,14 +1,43 @@
 import type { AstroIntegration } from "astro";
 
 import { defineConfig } from "astro/config";
-import { cp } from "node:fs/promises";
+import {
+  createGrammarLoader,
+  normalizeLanguage,
+} from "microlighter/grammar-dependencies.js";
+import { copyFile, mkdir, readdir, readFile } from "node:fs/promises";
 import { URL } from "node:url";
+
+const LANGUAGE_CLASS = /class="[^"]*\blanguage-(?<language>[\w\-]+)/gv;
+
+/** Grammar names of the code blocks' languages in the built pages */
+async function usedLanguages(dir: URL) {
+  const files = await readdir(dir, { recursive: true });
+  const reads: Promise<string>[] = [];
+  for (const file of files) {
+    if (file.endsWith(".html")) {
+      reads.push(readFile(new URL(file, dir), "utf8"));
+    }
+  }
+  const pages = await Promise.all(reads);
+  const languages = new Set<string>();
+  for (const html of pages) {
+    for (const match of html.matchAll(LANGUAGE_CLASS)) {
+      const language = match.groups?.["language"];
+      if (language !== undefined) {
+        languages.add(normalizeLanguage(language));
+      }
+    }
+  }
+  return [...languages];
+}
 
 /**
  * Microlighter lazy-loads its grammars with
  * import(`./grammars/${language}.js`), relative to its own module. The bundler
  * doesn't follow that import, so the grammars are copied next to the bundled
- * chunk. Only the grammars a page actually uses are ever downloaded.
+ * chunk: the languages of the built pages' code blocks, plus the grammars those
+ * embed (e.g. CSS and JavaScript in HTML).
  */
 function microlighterGrammars(): AstroIntegration {
   let assets = "_astro";
@@ -18,15 +47,26 @@ function microlighterGrammars(): AstroIntegration {
       "astro:config:done": ({ config }) => {
         ({ assets } = config.build);
       },
-      "astro:build:done": async ({ dir }) => {
-        const grammars = new URL(
+      "astro:build:done": async ({ dir, logger }) => {
+        const { languages } = await createGrammarLoader()(
+          await usedLanguages(dir),
+        );
+        const names = Object.keys(languages);
+        const source = new URL(
           "grammars/",
           import.meta.resolve("microlighter"),
         );
-        await cp(grammars, new URL(`${assets}/grammars/`, dir), {
-          recursive: true,
-          filter: (source) => !source.endsWith(".d.ts"),
-        });
+        const target = new URL(`${assets}/grammars/`, dir);
+        await mkdir(target, { recursive: true });
+        await Promise.all(
+          names.map(async (name) => {
+            await copyFile(
+              new URL(`${name}.js`, source),
+              new URL(`${name}.js`, target),
+            );
+          }),
+        );
+        logger.info(`Copied grammars: ${names.toSorted().join(", ")}`);
       },
     },
   };

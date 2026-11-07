@@ -78,7 +78,20 @@ const { pathname } = Astro.url;
     color: var(--accent);
   }
 
+  /**
+   * Two rows on narrow screens: the logo, the version and the theme switcher,
+   * then the navigation. Slightly smaller, so the first row fits on 360px wide
+   * screens.
+   */
   @media (max-width: 40rem) {
+    .header {
+      column-gap: 0.75rem;
+    }
+
+    .logo {
+      font-size: 1.2rem;
+    }
+
     .nav {
       order: 1;
       flex-basis: 100%;
