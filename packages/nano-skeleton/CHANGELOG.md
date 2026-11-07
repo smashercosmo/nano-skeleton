@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.8.1
+
+### Patch Changes
+
+- fix: keep link underlines visible while loading in Chrome
+
+  - Chrome painted underlines with the default `currentcolor` using the transparent text fill of a loading skeleton, so they disappeared. They now keep the text color, as documented. A `text-decoration-color` you set yourself still takes precedence
+
+- fix: hide text placed directly inside element-mode children
+
+  - Text placed directly inside a direct child of a skeleton in element mode, e.g. `<nano-skeleton><button>Follow</button></nano-skeleton>`, stayed visible on top of the placeholder. It's now hidden, the same way as in inline mode
+  - Text decorations of element-mode children, such as a link's underline, are hidden too, as the placeholder is the element's box, not its text
+  - Text in element-mode children can't be selected while loading, as in inline mode
+
+- fix: hide video frames and controls in Safari, keep the size of media while loading
+
+  - In Safari, a loading `<video>` showed its frame, native controls or "no video" icon on top of the placeholder. Loading images and videos now skip painting their contents (`content-visibility: hidden`) instead of having them replaced with an empty image, which works the same in every browser
+  - Images and videos sized only by their file no longer change size while loading: they keep their last rendered size, e.g. on a refetch, and fall back to 300×150 before they've been rendered once. Before, Chrome drew them as a square or a 1×1 box
+
+- fix: trim text bars to the cap height for a bare or auto-detected `inline`
+
+  - Since 0.8.0, only an explicit `inline="lines-bg-per-line"` got bars trimmed to the cap height. Text detected automatically, a bare `inline` attribute or an unknown value got taller bars that nearly touched across lines, although they all mean `lines-bg-per-line`
+
 ## 0.8.0
 
 ### Minor Changes

@@ -36,3 +36,10 @@ nano-skeleton@0.8.0:
   dir: packages/nano-skeleton
   intents:
     - silent-sheep-leave
+nano-skeleton@0.8.1:
+  dir: packages/nano-skeleton
+  intents:
+    - clear-links-show
+    - plain-boxes-hide
+    - quiet-media-skip
+    - tidy-bars-trim
