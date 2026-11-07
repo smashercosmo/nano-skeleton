@@ -12,6 +12,7 @@ const options = ["auto", "light", "dark"] as const;
           name="theme"
           value={value}
           checked={value === "auto"}
+          autocomplete="off"
         />
         <span>{value}</span>
       </label>
@@ -22,7 +23,9 @@ const options = ["auto", "light", "dark"] as const;
   /**
    * Runs right after the switcher is parsed, before the first paint. The theme
    * itself is applied by CSS (:root:has(... :checked)), this only restores
-   * and persists the choice.
+   * and persists the choice. "Auto" follows the system theme through CSS, and
+   * a pinned Light or Dark stays pinned when the system theme changes.
+   * autocomplete="off" keeps browsers from restoring a stale radio state.
    */
   (() => {
     const KEY = "__color_scheme__";
@@ -67,16 +70,14 @@ const options = ["auto", "light", "dark"] as const;
     });
 
     /**
-     * The system theme changed while the page is open: the system wins. Drop
-     * any pinned Light/Dark and go back to Auto.
+     * A page restored from the back/forward cache missed `storage` events
+     * while it was frozen, e.g. a theme picked on another page
      */
-    matchMedia("(prefers-color-scheme: dark)").addEventListener(
-      "change",
-      () => {
-        save("auto");
-        select("auto");
-      },
-    );
+    globalThis.addEventListener("pageshow", (event) => {
+      if (event.persisted) {
+        select(load());
+      }
+    });
 
     select(load());
   })();

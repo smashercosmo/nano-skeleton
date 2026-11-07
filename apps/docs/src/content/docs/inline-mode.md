@@ -30,3 +30,6 @@ placeholder text first and replace it with real data later:
 ```html
 <h3><nano-skeleton>Loading title…</nano-skeleton></h3>
 ```
+
+If the text is replaced with elements, e.g. an image, the skeleton switches
+back to element mode. An `inline` attribute you set yourself is never removed.

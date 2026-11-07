@@ -35,15 +35,21 @@ styles draw the text with a built-in font in which every character is a solid
 bar from the baseline to the cap height (spaces too in `lines-bg-per-block`,
 while in the `words-` styles they're gaps), and clip the background to it. The
 bars are the same height in every browser, including those without
-`text-box-trim`. The fonts are 1-2KB each, embedded in the package, and only
-registered once a skeleton that uses them appears.
+`text-box-trim`. The fonts are about 1KB and 2KB, embedded in the package, and
+only registered once a skeleton that uses them appears.
 
 The bars use an average glyph width, so text can wrap a little differently
 than the real text: the placeholder approximates its shape rather than matching
-it exactly. The height of each line doesn't change. To make the bars longer or
-shorter for a notably wide or narrow font, adjust
-`--nano-skeleton-letter-spacing` (values from about `-0.1em` to `0.2em` keep
-the bars solid).
+it exactly, and a paragraph can end up with one line more or less. The height
+of each line doesn't change. The text keeps its `letter-spacing`. To make the
+bars longer or shorter for a notably wide or narrow font, set
+`--nano-skeleton-letter-spacing`, which replaces it while loading (values from
+about `-0.1em` to `0.2em` keep the bars solid).
+
+Characters of scripts without spaces between words, such as Chinese or
+Japanese, are about twice as wide as the bars, and a whole line becomes one
+bar in the `words-` styles. For such text, prefer the default style, which
+follows the real text exactly.
 
 ### Things to keep in mind
 

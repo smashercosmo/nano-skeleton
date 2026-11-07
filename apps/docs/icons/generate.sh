@@ -2,6 +2,10 @@
 # Renders the raster favicons from app-icon.svg into ../public.
 # Uses only tools that ship with macOS (qlmanage, sips) and python3.
 # The output is committed, so this only needs to run when the icon changes.
+#
+# The social card, ../public/og-image.png, isn't rendered here, as QuickLook
+# only renders square images: it's a screenshot of og-image.svg in a browser
+# with a 1200x630 viewport and a device pixel ratio of 1.
 set -eu
 
 cd "$(dirname "$0")"

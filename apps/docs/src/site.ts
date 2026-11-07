@@ -5,8 +5,8 @@ const REPO_URL = "https://github.com/smashercosmo/nano-skeleton";
 const NPM_URL = "https://www.npmjs.com/package/nano-skeleton";
 
 /**
- * Prefixes a path with the site's base, e.g. "changelog" →
- * "/nano-skeleton/changelog"
+ * Prefixes a path with the site's base, e.g. "changelog/" →
+ * "/nano-skeleton/changelog/"
  */
 function withBase(path = "") {
   const base = import.meta.env.BASE_URL.endsWith("/")

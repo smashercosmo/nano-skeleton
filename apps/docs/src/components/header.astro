@@ -1,19 +1,29 @@
 ---
 import ThemeSwitcher from "#components/theme-switcher.astro";
 import { NPM_URL, REPO_URL, VERSION, withBase } from "#root/site.js";
+
+const DOCS_URL = withBase();
+const CHANGELOG_URL = withBase("changelog/");
+const { pathname } = Astro.url;
 ---
 
 <header class="header">
-  <a class="logo" href={withBase()} aria-label="nano-skeleton, home">
-    <span>nano</span><nano-skeleton-provider class="logo__provider" loading
+  <a class="logo" href={DOCS_URL} aria-label="nano-skeleton, home">
+    <span>nano</span><nano-skeleton-provider loading
       ><nano-skeleton class="logo__skeleton">skeleton</nano-skeleton
       ></nano-skeleton-provider
     >
   </a>
-  <a class="badge" href={withBase("changelog")} title="Changelog">v{VERSION}</a>
+  <a class="badge" href={CHANGELOG_URL} title="Changelog">v{VERSION}</a>
   <nav class="nav" aria-label="Main">
-    <a href={withBase()}>Docs</a>
-    <a href={withBase("changelog")}>Changelog</a>
+    <a href={DOCS_URL} aria-current={pathname === DOCS_URL ? "page" : undefined}
+      >Docs</a
+    >
+    <a
+      href={CHANGELOG_URL}
+      aria-current={pathname === CHANGELOG_URL ? "page" : undefined}
+      >Changelog</a
+    >
     <a href={REPO_URL}>GitHub</a>
     <a href={NPM_URL}>npm</a>
   </nav>
@@ -63,7 +73,8 @@ import { NPM_URL, REPO_URL, VERSION, withBase } from "#root/site.js";
     text-decoration: none;
   }
 
-  .nav a:hover {
+  .nav a:hover,
+  .nav a[aria-current="page"] {
     color: var(--accent);
   }
 

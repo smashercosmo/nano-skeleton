@@ -6,7 +6,7 @@ demo: element-mode
 
 If the skeleton contains elements, it becomes `display: contents` (it doesn't
 affect layout at all), and each **direct child** is painted as a placeholder
-block while everything inside it is hidden.
+block while its content is hidden (see [What is hidden](#what-is-hidden)).
 
 ```html
 <!-- Image: keeps its box, the picture itself is hidden -->
@@ -29,6 +29,20 @@ Because the placeholder is just the element's own box, make sure it has a size
 while loading, e.g. `width`/`height` attributes or `aspect-ratio` on images and
 videos, or a fixed size on containers. Shape comes from your element too: a
 rounded avatar produces a rounded placeholder.
+
+### What is hidden
+
+The skeleton replaces the element's content, not its look. While loading:
+
+- **Hidden:** the element's background (replaced by the placeholder), its
+  text, children, `::before` and `::after` content, list markers, and the
+  contents of images, videos, iframes and embeds.
+- **Kept:** the element's own box, including its border, box shadow and
+  outline. Hide them in your own styles if you don't want them while loading,
+  e.g. with `nano-skeleton[loading] > .card { box-shadow: none; }`.
+- **Not hidden:** the contents of a `<canvas>` and the native parts of form
+  controls, such as checkboxes, sliders or a select's arrow. Wrap them in an
+  element, e.g. a `<div>`, and put the skeleton around that instead.
 
 Images and videos that only get their size from the file keep their last
 rendered size when they go back to loading, e.g. on a refetch. Before they've

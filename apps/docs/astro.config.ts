@@ -67,6 +67,11 @@ export default defineConfig({
   /** GitHub Pages serves the site from /nano-skeleton/ */
   site: "https://smashercosmo.github.io",
   base: "/nano-skeleton",
+  /**
+   * GitHub Pages serves pages from directories and redirects URLs without a
+   * trailing slash, so links include it to skip the redirect
+   */
+  trailingSlash: "always",
   build: {
     /** One request less: the whole stylesheet is tiny */
     inlineStylesheets: "always",
