@@ -47,14 +47,6 @@
   display: inline;
   box-decoration-break: clone;
   text-decoration-skip-ink: none;
-  /**
-   * -webkit-text-fill-color overrides any "color" property that is also set.
-   */
-  -webkit-text-fill-color: transparent;
-  /**
-   * Text might get visible when selected
-   */
-  user-select: none;
 
   /**
    * The radius is a fraction of a fully rounded end: half the bar height.
@@ -69,7 +61,12 @@
     border-radius: calc(var(--nano-skeleton-inline-border-radius, var(--nano-skeleton-inline-border-radius-default)) * 0.6em);
   }
 
-  &:is([inline="lines-bg-per-line"]) {
+  /**
+   * The default style: an explicit "lines-bg-per-line", a bare "inline"
+   * attribute (also set by auto-detection) or an unknown value, i.e. anything
+   * that isn't one of the font-based styles
+   */
+  &:not([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
     text-box: cap alphabetic;
   }
 }
@@ -78,10 +75,29 @@
  * Children and grandchildren need to inherit these styles
  * for consistent outlines
  */
-:scope[loading][inline] > *,
-:scope[loading][inline] > * > * {
+:scope[loading][inline] * {
   border-radius: inherit;
   text-box: inherit;
+}
+
+/**
+ * Chrome paints a bare "currentColor" underline with -webkit-text-fill-color,
+ * which is transparent here. Wrapped in color-mix(), it resolves to "color"
+ * instead, so underlines stay visible. The color itself doesn't change.
+ * Zero specificity, so a text-decoration-color set by the author still wins.
+ */
+:where(:scope[loading][inline], :scope[loading][inline] *) {
+  text-decoration-color: color-mix(in srgb, currentcolor, currentcolor);
+}
+
+/**
+ * In element mode the placeholder is the element's box, so its text
+ * decorations, such as a link's underline, are hidden with the text. Chrome
+ * would hide a "currentcolor" underline anyway (see above), other browsers
+ * would paint it under the placeholder.
+ */
+:scope[loading]:not([inline]) > * {
+  text-decoration-color: transparent;
 }
 
 /**
@@ -155,14 +171,38 @@
   font-variation-settings: "RADI" var(--nano-skeleton-inline-border-radius, var(--nano-skeleton-inline-border-radius-default));
 }
 
+/**
+ * Remembers the media's last rendered size, so it keeps that size while
+ * loading, when its contents are skipped (see below). Before the first
+ * render, it falls back to 300x150, the default size of replaced elements.
+ * It has no effect when the contents aren't skipped.
+ */
+:scope > :is(video, img):only-child {
+  contain-intrinsic-size: auto 300px auto 150px;
+}
+
+/**
+ * Skips painting the media's contents: the picture, the video frame, the
+ * native video controls and the broken image icon. The box and its
+ * background, the placeholder, are still painted.
+ */
 :scope[loading] > :is(video, img):only-child {
-  content: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7") !important;
+  content-visibility: hidden !important;
 }
 
 :scope[loading][inline],
 :scope[loading]:not([inline]) > * {
   background-size: var(--nano-skeleton-background-size, var(--nano-skeleton-background-size-default)) !important;
   background-color: transparent !important;
+
+  /**
+   * -webkit-text-fill-color overrides any "color" property that is also set.
+   */
+  -webkit-text-fill-color: transparent;
+  /**
+   * Text might get visible when selected
+   */
+  user-select: none;
 
   @media not (forced-colors: active) {
     background-image: var(--nano-skeleton-background-image, var(--nano-skeleton-background-image-default)) !important;
