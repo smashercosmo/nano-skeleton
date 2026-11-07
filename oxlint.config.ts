@@ -1012,9 +1012,7 @@ const config: OxlintConfig = {
         "vitest/prefer-strict-boolean-matchers": "error",
         "vitest/prefer-strict-equal": "error",
         "vitest/prefer-to-be": "error",
-        "vitest/prefer-to-be-falsy": "error",
         "vitest/prefer-to-be-object": "error",
-        "vitest/prefer-to-be-truthy": "error",
         "vitest/prefer-to-contain": "error",
         "vitest/prefer-to-have-been-called-times": "error",
         "vitest/prefer-to-have-length": "error",
@@ -1074,6 +1072,15 @@ const config: OxlintConfig = {
          * like everything to be as explicit as possible.
          */
         "vitest/no-importing-vitest-globals": "off",
+
+        /**
+         * They contradict `vitest/prefer-strict-boolean-matchers`: these want
+         * `toBeTruthy()` instead of `toBe(true)`, that one wants the opposite.
+         * Strict matchers win, as `toBeTruthy()` also passes for `1` or
+         * `"no"`.
+         */
+        "vitest/prefer-to-be-truthy": "off",
+        "vitest/prefer-to-be-falsy": "off",
 
         //endregion
 

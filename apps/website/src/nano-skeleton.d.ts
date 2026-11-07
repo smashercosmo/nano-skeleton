@@ -6,28 +6,20 @@ import type {
 } from "nano-skeleton";
 import type { DetailedHTMLProps, HTMLAttributes } from "react";
 
-type FunctionKeys<TObject> = {
-  [TKey in keyof TObject]: TObject[TKey] extends (
-    ...args: readonly never[]
-  ) => unknown
-    ? TKey
-    : never;
-}[keyof TObject];
-
-type ElementProps<TElement extends HTMLElement> = Partial<
-  Omit<TElement, keyof HTMLElement | FunctionKeys<TElement>>
->;
-
+/**
+ * Only the properties that can be set. `Skeleton.loading` is read-only: React
+ * would assign it and throw.
+ */
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
       [COMPONENT_NAME]: DetailedHTMLProps<HTMLAttributes<Skeleton>, Skeleton> &
-        ElementProps<Skeleton>;
+        Partial<Pick<Skeleton, "inline" | "interactive">>;
       [PROVIDER_NAME]: DetailedHTMLProps<
         HTMLAttributes<SkeletonProvider>,
         SkeletonProvider
       > &
-        ElementProps<SkeletonProvider>;
+        Partial<Pick<SkeletonProvider, "loading">>;
     }
   }
 }
