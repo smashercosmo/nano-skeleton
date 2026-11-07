@@ -43,3 +43,11 @@ nano-skeleton@0.8.1:
     - plain-boxes-hide
     - quiet-media-skip
     - tidy-bars-trim
+nano-skeleton@0.9.0:
+  dir: packages/nano-skeleton
+  intents:
+    - hidden-content-everywhere
+    - prefixed-shimmer-keyframes
+    - steady-media-sizes
+    - steady-skeleton-lifecycle
+    - typed-tag-names
