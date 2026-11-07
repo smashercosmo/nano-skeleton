@@ -39,3 +39,10 @@ jobs:
 
       - name: Check formatting
         run: pnpm exec oxfmt --check
+
+      # The browser tests run in Chromium, WebKit and Firefox
+      - name: Install browsers
+        run: pnpm --filter nano-skeleton exec playwright install --with-deps chromium webkit firefox
+
+      - name: Test
+        run: pnpm --filter nano-skeleton test

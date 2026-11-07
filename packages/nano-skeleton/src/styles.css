@@ -1,256 +1,328 @@
-:scope {
-  --nano-skeleton-animation: inherit;
-  --nano-skeleton-background-image: inherit;
-  --nano-skeleton-background-size: inherit;
-  --nano-skeleton-inline-border-radius: inherit;
-  --nano-skeleton-forced-colors-background-image: inherit;
-  --nano-skeleton-letter-spacing: inherit;
-
-  --nano-skeleton-letter-spacing-default: 0;
-  --nano-skeleton-inline-border-radius-default: 1;
-
-  --nano-skeleton-animation-default: shimmer 2s infinite ease-in-out;
-  --nano-skeleton-background-size-default: 300%;
-  --nano-skeleton-background-image-default: linear-gradient(
-    90deg in oklch,
-    light-dark(oklch(91% 0 0), oklch(26% 0 0)) 34%,
-    light-dark(oklch(93% 0 0), oklch(29.5% 0 0)) 42%,
-    light-dark(oklch(95% 0 0), oklch(33% 0 0)) 50%,
-    light-dark(oklch(93% 0 0), oklch(29.5% 0 0)) 58%,
-    light-dark(oklch(91% 0 0), oklch(26% 0 0)) 66%
-  );
-  /**
-   * System colors only, so the user's forced palette is respected
-   */
-  --nano-skeleton-forced-colors-background-image-default: linear-gradient(
-    90deg,
-    color-mix(in oklch, CanvasText 30%, Canvas) 34%,
-    color-mix(in oklch, CanvasText 45%, Canvas) 50%,
-    color-mix(in oklch, CanvasText 30%, Canvas) 66%
-  );
-}
-
-:scope:not([inline]) {
-  display: contents;
-}
-
-/*
- * Everything inside the root should disappear, but nothing jumps,
- * as layout is intact. Hidden visually only: focus and accessibility are
- * handled by inert, so interactive skeletons keep both.
+/**
+ * Custom properties are read with the default as the var() fallback, so they
+ * can be set on any ancestor or on the skeleton itself
  */
-:scope[loading] > * > * {
-  opacity: 0 !important;
-}
-
-:scope[loading][inline] {
-  display: inline;
-  box-decoration-break: clone;
-  text-decoration-skip-ink: none;
-
-  /**
-   * The radius is a fraction of a fully rounded end: half the bar height.
-   * The bar is trimmed to the cap height, or, where text-box isn't
-   * supported, it's the whole content area, roughly 1.2em tall.
-   */
-  @supports (text-box: cap alphabetic) {
-    border-radius: calc(var(--nano-skeleton-inline-border-radius, var(--nano-skeleton-inline-border-radius-default)) * 0.5cap);
+@scope (nano-skeleton) {
+  :scope:not([inline]) {
+    display: contents;
   }
 
-  @supports not (text-box: cap alphabetic) {
-    border-radius: calc(var(--nano-skeleton-inline-border-radius, var(--nano-skeleton-inline-border-radius-default)) * 0.6em);
+  /*
+   * Everything inside the root should disappear, but nothing jumps,
+   * as layout is intact. Hidden visually only: focus and accessibility are
+   * handled by inert, so interactive skeletons keep both.
+   *
+   * In element mode, an image inside a picture or a link is the placeholder
+   * itself (see below), so it stays visible.
+   */
+  :scope[loading][inline] > * > *,
+  :scope[loading]:not([inline]) > :not(picture, a:has(> img:only-child)) > *,
+  :scope[loading]:not([inline]) > :is(picture, a:has(> img:only-child)) > :not(img) {
+    opacity: 0 !important;
+  }
+
+  :scope[loading][inline] {
+    display: inline;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    text-decoration-skip-ink: none;
+
+    /**
+     * The radius is a fraction of a fully rounded end: half the bar height.
+     * The bar is trimmed to the cap height, or, where text-box isn't
+     * supported, it's the whole content area, roughly 1.2em tall.
+     */
+    @supports (text-box: cap alphabetic) {
+      border-radius: calc(var(--nano-skeleton-inline-border-radius, 1) * 0.5cap);
+    }
+
+    @supports not (text-box: cap alphabetic) {
+      border-radius: calc(var(--nano-skeleton-inline-border-radius, 1) * 0.6em);
+    }
+
+    /**
+     * The default style: an explicit "lines-bg-per-line", a bare "inline"
+     * attribute (also set by auto-detection) or an unknown value, i.e. anything
+     * that isn't one of the font-based styles
+     */
+    &:not([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
+      text-box: cap alphabetic;
+    }
   }
 
   /**
-   * The default style: an explicit "lines-bg-per-line", a bare "inline"
-   * attribute (also set by auto-detection) or an unknown value, i.e. anything
-   * that isn't one of the font-based styles
+   * Children and grandchildren need to inherit these styles
+   * for consistent outlines
    */
-  &:not([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
-    text-box: cap alphabetic;
-  }
-}
-
-/**
- * Children and grandchildren need to inherit these styles
- * for consistent outlines
- */
-:scope[loading][inline] * {
-  border-radius: inherit;
-  text-box: inherit;
-}
-
-/**
- * Chrome paints a bare "currentColor" underline with -webkit-text-fill-color,
- * which is transparent here. Wrapped in color-mix(), it resolves to "color"
- * instead, so underlines stay visible. The color itself doesn't change.
- * Zero specificity, so a text-decoration-color set by the author still wins.
- */
-:where(:scope[loading][inline], :scope[loading][inline] *) {
-  text-decoration-color: color-mix(in srgb, currentcolor, currentcolor);
-}
-
-/**
- * In element mode the placeholder is the element's box, so its text
- * decorations, such as a link's underline, are hidden with the text. Chrome
- * would hide a "currentcolor" underline anyway (see above), other browsers
- * would paint it under the placeholder.
- */
-:scope[loading]:not([inline]) > * {
-  text-decoration-color: transparent;
-}
-
-/**
- * All modes except "lines-bg-per-line" draw the text with a built-in font
- * whose glyphs are solid bars from the baseline to the cap height, and clip
- * the background to those glyphs. "lines-bg-per-block" uses a font where
- * spaces are bars too, so each line becomes one bar. The "words-" modes use a
- * font where spaces are gaps and each word becomes a pill.
- */
-:scope[loading]:is([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
-  /**
-   * The bar shapes come from the glyphs, so the box needs
-   * no rounding and no cap-height trimming
-   */
-  text-box: normal;
-  border-radius: 0;
-  /**
-   * Synthetic bold and italic would widen or skew the bars
-   */
-  font-synthesis: none !important;
-  /**
-   * The bars use an average glyph width, so they can be fine-tuned
-   * for fonts that are notably wider or narrower
-   */
-  letter-spacing: var(--nano-skeleton-letter-spacing, var(--nano-skeleton-letter-spacing-default));
-  background-clip: text;
-  /**
-   * The font's ascent and descent differ from the surrounding font's, so
-   * baseline alignment could make the line box a pixel taller. Aligned to
-   * the top, each line has the same line-height as the line it sits in, so
-   * it fits exactly.
-   */
-  vertical-align: top;
-}
-
-:scope[loading]:is([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) * {
-  font-family: inherit !important;
-  font-synthesis: inherit !important;
-  font-variant-ligatures: inherit !important;
-  font-feature-settings: inherit !important;
-  font-variation-settings: inherit !important;
-  letter-spacing: inherit !important;
-}
-
-/**
- * An inline element is split into one box per line, and each gets its own
- * gradient. As an inline-block, the skeleton is a single box around all of
- * its lines, so one gradient is masked by the glyphs and the shimmer sweeps
- * every line in sync.
- */
-:scope[loading]:is([inline="lines-bg-per-block"], [inline="words-bg-per-block"]) {
-  display: inline-block;
-}
-
-:scope[loading][inline="lines-bg-per-block"] {
-  font-family: nano-skeleton-font-lines;
-}
-
-/**
- * The pill shapes come from "contextual alternates" in the font
- * (https://typenetwork.com/articles/opentype-at-work-contextual-alternates).
- */
-:scope[loading]:is([inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
-  font-family: nano-skeleton-font-words;
-  font-variant-ligatures: contextual;
-  font-feature-settings: normal;
-  /**
-   * The font's "RADI" axis rounds the pill ends: from 0 (square)
-   * to 1 (fully rounded), relative to the bar height
-   */
-  font-variation-settings: "RADI" var(--nano-skeleton-inline-border-radius, var(--nano-skeleton-inline-border-radius-default));
-}
-
-/**
- * Remembers the media's last rendered size, so it keeps that size while
- * loading, when its contents are skipped (see below). Before the first
- * render, it falls back to 300x150, the default size of replaced elements.
- * It has no effect when the contents aren't skipped.
- */
-:scope > :is(video, img):only-child {
-  contain-intrinsic-size: auto 300px auto 150px;
-}
-
-/**
- * Skips painting the media's contents: the picture, the video frame, the
- * native video controls and the broken image icon. The box and its
- * background, the placeholder, are still painted.
- */
-:scope[loading] > :is(video, img):only-child {
-  content-visibility: hidden !important;
-}
-
-:scope[loading][inline],
-:scope[loading]:not([inline]) > * {
-  background-size: var(--nano-skeleton-background-size, var(--nano-skeleton-background-size-default)) !important;
-  background-color: transparent !important;
-
-  /**
-   * -webkit-text-fill-color overrides any "color" property that is also set.
-   */
-  -webkit-text-fill-color: transparent;
-  /**
-   * Text might get visible when selected
-   */
-  user-select: none;
-
-  @media not (forced-colors: active) {
-    background-image: var(--nano-skeleton-background-image, var(--nano-skeleton-background-image-default)) !important;
+  :scope[loading][inline] * {
+    border-radius: inherit;
+    text-box: inherit;
   }
 
   /**
-   * Forced colors mode drops gradient backgrounds, which would make
-   * the skeleton disappear. Opt out of forced colors and redraw it
-   * with system colors only, so the user's palette is still respected.
+   * Media inside inline text is content, like the text itself. Other inline
+   * elements keep their own boxes, such as a kbd's border and background.
    */
+  :scope[loading][inline] > :is(img, svg, video, canvas, picture, iframe, object, embed) {
+    opacity: 0 !important;
+  }
+
+  /**
+   * Chrome paints a bare "currentColor" underline with -webkit-text-fill-color,
+   * which is transparent here. Wrapped in color-mix(), it resolves to "color"
+   * instead, so underlines stay visible. The color itself doesn't change.
+   * Zero specificity, so a text-decoration-color set by the author still wins.
+   */
+  :where(:scope[loading][inline], :scope[loading][inline] *) {
+    text-decoration-color: color-mix(in srgb, currentcolor, currentcolor);
+  }
+
+  /**
+   * In element mode the placeholder is the element's box, so its text
+   * decorations, such as a link's underline, are hidden with the text. Chrome
+   * would hide a "currentcolor" underline anyway (see above), other browsers
+   * would paint it under the placeholder.
+   */
+  :scope[loading]:not([inline]) > * {
+    text-decoration-color: transparent;
+  }
+
+  /**
+   * Generated content and list markers are content, like the children. The
+   * element's own box, including its border, shadow and outline, is kept.
+   */
+  :scope[loading]:not([inline]) > ::before,
+  :scope[loading]:not([inline]) > ::after {
+    opacity: 0 !important;
+  }
+
+  :scope[loading]:not([inline]) > ::marker {
+    color: transparent !important;
+  }
+
+  /**
+   * A transparent text fill doesn't hide text shadows and strokes
+   */
+  :scope[loading][inline],
+  :scope[loading][inline] > *,
+  :scope[loading]:not([inline]) > * {
+    text-shadow: none !important;
+    -webkit-text-stroke-color: transparent !important;
+  }
+
+  /**
+   * All modes except "lines-bg-per-line" draw the text with a built-in font
+   * whose glyphs are solid bars from the baseline to the cap height, and clip
+   * the background to those glyphs. "lines-bg-per-block" uses a font where
+   * spaces are bars too, so each line becomes one bar. The "words-" modes use a
+   * font where spaces are gaps and each word becomes a pill.
+   */
+  :scope[loading]:is([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
+    /**
+     * The bar shapes come from the glyphs, so the box needs
+     * no rounding and no cap-height trimming
+     */
+    text-box: normal;
+    border-radius: 0;
+    /**
+     * Synthetic bold and italic would widen or skew the bars
+     */
+    font-synthesis: none !important;
+    /**
+     * The bars use an average glyph width, so they can be fine-tuned for fonts
+     * that are notably wider or narrower. Without the custom property, the
+     * declaration is invalid at computed-value time, and the inherited
+     * letter-spacing applies.
+     */
+    letter-spacing: var(--nano-skeleton-letter-spacing);
+    background-clip: text;
+    /**
+     * The font's ascent and descent differ from the surrounding font's, so
+     * baseline alignment could make the line box a pixel taller. Aligned to
+     * the top, each line has the same line-height as the line it sits in, so
+     * it fits exactly.
+     */
+    vertical-align: top;
+    /**
+     * The parent's line height as a length. With "line-height: normal" it
+     * comes from the parent's font, not from the built-in one, whose much
+     * shorter "normal" line height would collapse the lines.
+     */
+    line-height: 1lh;
+  }
+
+  :scope[loading]:is([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) * {
+    font-family: inherit !important;
+    font-synthesis: inherit !important;
+    font-variant-ligatures: inherit !important;
+    font-feature-settings: inherit !important;
+    font-variation-settings: inherit !important;
+    letter-spacing: inherit !important;
+  }
+
+  /**
+   * An inline element is split into one box per line, and each gets its own
+   * gradient. As an inline-block, the skeleton is a single box around all of
+   * its lines, so one gradient is masked by the glyphs and the shimmer sweeps
+   * every line in sync.
+   */
+  :scope[loading]:is([inline="lines-bg-per-block"], [inline="words-bg-per-block"]) {
+    display: inline-block;
+  }
+
+  :scope[loading][inline="lines-bg-per-block"] {
+    font-family: nano-skeleton-font-lines;
+  }
+
+  /**
+   * The pill shapes come from "contextual alternates" in the font
+   * (https://typenetwork.com/articles/opentype-at-work-contextual-alternates).
+   */
+  :scope[loading]:is([inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
+    font-family: nano-skeleton-font-words;
+    font-variant-ligatures: contextual;
+    font-feature-settings: normal;
+    /**
+     * The font's "RADI" axis rounds the pill ends: from 0 (square)
+     * to 1 (fully rounded), relative to the bar height
+     */
+    font-variation-settings: "RADI" var(--nano-skeleton-inline-border-radius, 1);
+  }
+
+  /**
+   * Remembers the media's last rendered size, so it keeps that size while
+   * loading, when its contents are skipped (see below). Before the first
+   * render, images have no size of their own, while videos and embedded
+   * documents get the browser's default 300x150. It has no effect when the
+   * contents aren't skipped.
+   */
+  :scope:not([inline]) > img:only-child,
+  :scope:not([inline]) > :is(picture, a:has(> img:only-child)) > img {
+    contain-intrinsic-size: auto none;
+  }
+
+  :scope:not([inline]) > :is(video, iframe, embed, object):only-child {
+    contain-intrinsic-size: auto 300px auto 150px;
+  }
+
+  /**
+   * Skips painting the media's contents: the picture, the video frame, the
+   * native video controls and the broken image icon. The box and its
+   * background, the placeholder, are still painted.
+   *
+   * Skipped contents also don't count towards the automatic minimum size of
+   * flex and grid items, which would let the media shrink. Its min-content
+   * size is its last rendered size, so that becomes its minimum.
+   */
+  :scope[loading]:not([inline]) > :is(img, video, iframe, embed, object):only-child,
+  :scope[loading]:not([inline]) > :is(picture, a:has(> img:only-child)) > img {
+    content-visibility: hidden !important;
+    min-inline-size: min-content !important;
+    min-block-size: min-content !important;
+  }
+
+  /**
+   * A picture or a link around an image is an inline box only as tall as a
+   * line of text, so the image inside it is the placeholder instead
+   */
+  :scope[loading]:not([inline]) > :is(picture, a:has(> img:only-child)) {
+    background-image: none !important;
+  }
+
+  :scope[loading][inline],
+  :scope[loading]:not([inline]) > *,
+  :scope[loading]:not([inline]) > :is(picture, a:has(> img:only-child)) > img {
+    background-size: var(--nano-skeleton-background-size, 300%) !important;
+    background-color: transparent !important;
+
+    /**
+     * -webkit-text-fill-color overrides any "color" property that is also set.
+     */
+    -webkit-text-fill-color: transparent;
+    /**
+     * Text might get visible when selected
+     */
+    user-select: none;
+
+    @media not (forced-colors: active) {
+      background-image: var(
+        --nano-skeleton-background-image,
+        linear-gradient(
+          90deg in oklch,
+          light-dark(oklch(91% 0 0), oklch(26% 0 0)) 34%,
+          light-dark(oklch(93% 0 0), oklch(29.5% 0 0)) 42%,
+          light-dark(oklch(95% 0 0), oklch(33% 0 0)) 50%,
+          light-dark(oklch(93% 0 0), oklch(29.5% 0 0)) 58%,
+          light-dark(oklch(91% 0 0), oklch(26% 0 0)) 66%
+        )
+      ) !important;
+    }
+
+    /**
+     * Forced colors mode drops gradient backgrounds, which would make
+     * the skeleton disappear. Opt out of forced colors and redraw it
+     * with system colors only, so the user's palette is still respected.
+     */
+    @media (forced-colors: active) {
+      forced-color-adjust: none;
+      background-image: var(
+        --nano-skeleton-forced-colors-background-image,
+        linear-gradient(
+          90deg,
+          color-mix(in oklch, CanvasText 30%, Canvas) 34%,
+          color-mix(in oklch, CanvasText 45%, Canvas) 50%,
+          color-mix(in oklch, CanvasText 30%, Canvas) 66%
+        )
+      ) !important;
+    }
+
+    @media not (prefers-reduced-motion: reduce) {
+      animation: var(--nano-skeleton-animation, nano-skeleton-shimmer 2s infinite ease-in-out) !important;
+    }
+  }
+
   @media (forced-colors: active) {
-    forced-color-adjust: none;
-    background-image: var(--nano-skeleton-forced-colors-background-image, var(--nano-skeleton-forced-colors-background-image-default)) !important;
+    /**
+     * Descendants inherit "forced-color-adjust: none", so text decorations
+     * that stay visible while loading need their system colors restored
+     */
+    :scope[loading][inline] *:not(:any-link) {
+      text-decoration-color: CanvasText;
+    }
+
+    :scope[loading][inline] :any-link {
+      text-decoration-color: LinkText;
+    }
   }
 
-  @media not (prefers-reduced-motion: reduce) {
-    animation: var(--nano-skeleton-animation, var(--nano-skeleton-animation-default)) !important;
-  }
-}
-
-@media (forced-colors: active) {
   /**
-   * Descendants inherit "forced-color-adjust: none", so text decorations
-   * that stay visible while loading need their system colors restored
+   * The shimmer follows the reading direction
    */
-  :scope[loading][inline] *:not(:any-link) {
-    text-decoration-color: CanvasText;
-  }
-
-  :scope[loading][inline] :any-link {
-    text-decoration-color: LinkText;
+  :scope[loading][inline]:dir(rtl),
+  :scope[loading]:not([inline]) > :dir(rtl) {
+    --nano-skeleton-shimmer-from: 0%;
+    --nano-skeleton-shimmer-to: 100%;
   }
 }
 
 /**
- * The shimmer follows the reading direction
+ * Outside of @scope: keyframes aren't style rules, and the name is global, so
+ * it's prefixed to not clash with the page's own keyframes
  */
-:scope[loading][inline]:dir(rtl),
-:scope[loading]:not([inline]) > :dir(rtl) {
-  --nano-skeleton-shimmer-from: 0%;
-  --nano-skeleton-shimmer-to: 100%;
-}
-
-@keyframes shimmer {
+@keyframes nano-skeleton-shimmer {
   from {
     background-position-x: var(--nano-skeleton-shimmer-from, 100%);
   }
   to {
     background-position-x: var(--nano-skeleton-shimmer-to, 0%);
   }
+}
+
+/**
+ * The ellipsis of truncated text is drawn by the skeleton's parent, in the
+ * parent's color, so it would show on top of the placeholder. Clipping only
+ * changes how the overflow is painted, not the layout.
+ */
+:where(:has(> nano-skeleton[loading][inline])) {
+  text-overflow: clip !important;
 }

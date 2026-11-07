@@ -1,9 +1,10 @@
 import type { Unsubscribe } from "#root/types.js";
 
+import { adoptStyles } from "#root/adopt-styles.js";
 import { COMPONENT_NAME, SKELETON_CONTEXT } from "#root/constants.js";
+import { ContextProviderEvent } from "#root/context-provider-event.js";
 import { ContextRequestEvent } from "#root/context-request-event.js";
 import { registerFont } from "#root/fonts.js";
-import { adoptStyles } from "#root/styles.js";
 
 /**
  * How inline text is drawn while loading: as one bar per line or one pill per
@@ -29,6 +30,13 @@ function isDocumentOrShadowRoot(
   return "adoptedStyleSheets" in node;
 }
 
+/** Checks the node type, as `instanceof Text` fails for nodes of an iframe */
+function isNonEmptyText(node: Node) {
+  return (
+    node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim() !== ""
+  );
+}
+
 class Skeleton extends HTMLElement {
   public static readonly observedAttributes = ["interactive", "inline"];
   public static define() {
@@ -39,16 +47,32 @@ class Skeleton extends HTMLElement {
 
   #unsubscribe?: Unsubscribe | undefined;
 
+  /** `inline` was added by auto-detection, not by the author */
+  #autoInline = false;
+
+  /** `inert` was added by the skeleton, not by the author */
+  #ownInert = false;
+
+  /** The skeleton is changing its own `inline` attribute */
+  #settingInline = false;
+
   readonly #observer = new MutationObserver(() => {
     this.#update();
   });
 
+  /** A provider connected: try again if no provider answered before */
+  readonly #onContextProvider = (event: Event) => {
+    if (
+      event instanceof ContextProviderEvent &&
+      event.context === SKELETON_CONTEXT
+    ) {
+      this.#requestContext();
+    }
+  };
+
+  /** Set by the nearest provider, see `<nano-skeleton-provider loading>` */
   public get loading() {
     return this.hasAttribute("loading");
-  }
-
-  public set loading(value: boolean) {
-    this.toggleAttribute("loading", value);
   }
 
   public get interactive() {
@@ -88,6 +112,9 @@ class Skeleton extends HTMLElement {
       return;
     }
     if (name === "inline") {
+      if (!this.#settingInline) {
+        this.#autoInline = false;
+      }
       this.#registerFont();
       this.#update();
     } else {
@@ -95,15 +122,48 @@ class Skeleton extends HTMLElement {
     }
   }
 
-  public async connectedCallback() {
-    const root = this.getRootNode();
+  /**
+   * Synchronous, so a skeleton that is moved or removed right after being added
+   * never subscribes while it's disconnected
+   */
+  public connectedCallback() {
+    this.#upgradeProperty("inline");
+    this.#upgradeProperty("interactive");
 
+    const root = this.getRootNode();
     if (isDocumentOrShadowRoot(root)) {
-      await adoptStyles(root);
+      adoptStyles(root);
     }
 
+    this.#registerFont();
     this.#update();
     this.#render(false);
+    this.#requestContext();
+
+    this.#observer.observe(this, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  }
+
+  public disconnectedCallback() {
+    this.#unsubscribe?.();
+    this.#unsubscribe = undefined;
+    this.ownerDocument.removeEventListener(
+      "context-provider",
+      this.#onContextProvider,
+    );
+    this.#observer.disconnect();
+  }
+
+  /**
+   * Subscribes to the nearest provider. Without one, waits for a provider to
+   * connect, e.g. one that is defined later.
+   */
+  #requestContext() {
+    this.#unsubscribe?.();
+    this.#unsubscribe = undefined;
 
     this.dispatchEvent(
       new ContextRequestEvent(
@@ -118,33 +178,62 @@ class Skeleton extends HTMLElement {
       ),
     );
 
-    this.#observer.observe(this, {
-      childList: true,
-      characterData: true,
-      subtree: true,
-    });
-  }
-
-  public disconnectedCallback() {
-    this.#unsubscribe?.();
-    this.#unsubscribe = undefined;
-    this.#observer.disconnect();
-  }
-
-  #update() {
-    if (this.hasAttribute("inline")) {
-      return;
+    if (this.#isSubscribed()) {
+      this.ownerDocument.removeEventListener(
+        "context-provider",
+        this.#onContextProvider,
+      );
+    } else {
+      this.ownerDocument.addEventListener(
+        "context-provider",
+        this.#onContextProvider,
+      );
     }
-    /**
-     * Here we auto-determine `inline` mode. Skeleton is considered `inline` if
-     * it contains text nodes only. The attribute is added without a value, so
-     * the default mode applies.
-     */
-    const hasText = [...this.childNodes].some(
-      (node) => node instanceof Text && node.data.trim() !== "",
-    );
-    if (hasText) {
-      this.setAttribute("inline", "");
+  }
+
+  /**
+   * A method, as TypeScript can't tell that the provider's callback sets
+   * `#unsubscribe` during `dispatchEvent()`
+   */
+  #isSubscribed() {
+    return this.#unsubscribe !== undefined;
+  }
+
+  /**
+   * A property set before the element was defined is an own property that
+   * shadows the accessor. Re-sets it through the accessor.
+   */
+  #upgradeProperty(name: "inline" | "interactive") {
+    if (Object.hasOwn(this, name)) {
+      const value: unknown = Reflect.get(this, name);
+      Reflect.deleteProperty(this, name);
+      Reflect.set(this, name, value);
+    }
+  }
+
+  /**
+   * Auto-detects inline mode: the skeleton is inline if it directly contains
+   * text. The attribute is added without a value, so the default mode applies,
+   * and removed again once the text is gone. An `inline` attribute set by the
+   * author is never removed.
+   */
+  #update() {
+    const hasText = [...this.childNodes].some((node) => isNonEmptyText(node));
+    if (hasText && !this.hasAttribute("inline")) {
+      this.#setInline(true);
+      this.#autoInline = true;
+    } else if (!hasText && this.#autoInline) {
+      this.#setInline(false);
+      this.#autoInline = false;
+    }
+  }
+
+  #setInline(force: boolean) {
+    this.#settingInline = true;
+    try {
+      this.toggleAttribute("inline", force);
+    } finally {
+      this.#settingInline = false;
     }
   }
 
@@ -152,18 +241,26 @@ class Skeleton extends HTMLElement {
   #registerFont() {
     const { inline } = this;
     if (inline === "lines-bg-per-block") {
-      registerFont("lines");
+      registerFont("lines", this.ownerDocument);
     } else if (
       inline === "words-bg-per-line" ||
       inline === "words-bg-per-block"
     ) {
-      registerFont("words");
+      registerFont("words", this.ownerDocument);
     }
   }
 
+  /** Only removes an `inert` attribute that the skeleton added itself */
   #render(loading: boolean) {
     this.toggleAttribute("loading", loading);
-    this.toggleAttribute("inert", loading && !this.interactive);
+    const inert = loading && !this.interactive;
+    if (inert && !this.hasAttribute("inert")) {
+      this.toggleAttribute("inert", true);
+      this.#ownInert = true;
+    } else if (!inert && this.#ownInert) {
+      this.toggleAttribute("inert", false);
+      this.#ownInert = false;
+    }
   }
 }
 

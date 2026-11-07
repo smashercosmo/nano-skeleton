@@ -1,6 +1,6 @@
 {
   "extends": "@internal/tsconfig/node",
-  "include": ["tsdown.config.ts"],
+  "include": ["tsdown.config.ts", "vitest.config.ts"],
   "compilerOptions": {
     "tsBuildInfoFile": "node_modules/tsconfig.node.tsbuildinfo"
   }

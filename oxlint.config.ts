@@ -66,7 +66,6 @@ const config: OxlintConfig = {
     "unicorn/no-negation-in-equality-check": "error",
     "unicorn/no-new-array": "error",
     "unicorn/no-new-buffer": "error",
-    "unicorn/no-null": "error",
     "unicorn/no-object-as-default-parameter": "error",
     "unicorn/no-process-exit": "error",
     "unicorn/no-single-promise-in-promise-methods": "error",
@@ -170,11 +169,21 @@ const config: OxlintConfig = {
       },
     ],
 
+    /**
+     * Many third-party functions, that we have no control of, accept null as
+     * one of the arguments. Example:
+     *
+     * ```ts
+     * JSON.stringify(someJsonObject, null, 2);
+     * ```
+     */
+    "unicorn/no-null": ["error", { checkArguments: false }],
+
     //endregion
 
     //region ------------- Disabled Unicorn rules -------------
 
-    /** @see {no-nested-ternary} for explanation */
+    /** See `no-nested-ternary` below for explanation */
     "unicorn/no-nested-ternary": "off",
 
     //endregion
@@ -274,7 +283,7 @@ const config: OxlintConfig = {
     "no-nonoctal-decimal-escape": "error",
     "no-obj-calls": "error",
     "no-object-constructor": "error",
-    "no-param-reassign": "error",
+    "no-param-reassign": ["error", { props: true }],
     "no-plusplus": "error",
     "no-promise-executor-return": "error",
     "no-proto": "error",
@@ -416,19 +425,19 @@ const config: OxlintConfig = {
     //region ------------- Disabled ESLint rules -------------
 
     /**
-     * Oxfmt is now responsible for sorting unports. Later we'll try
+     * Oxfmt is now responsible for sorting imports. Later we'll try
      * eslint-plugin-perfectionist.
      */
     "sort-imports": "off",
 
     /**
-     * Pretty annoying rule, as it's not autofixable. Later we'll try
+     * Pretty annoying rule, as it's not auto fixable. Later we'll try
      * eslint-plugin-perfectionist for all kinds of sorting.
      */
     "sort-keys": "off",
 
     /**
-     * Sometimes it's better to have one big function, Sometimes it's better to
+     * Sometimes it's better to have one big function, sometimes it's better to
      * split it into multiple single-purposed functions. Sometimes it's better
      * to keep everything in one file, sometimes it's better to extract some
      * code into separate modules. Should be decided on a per-case basis.
@@ -437,7 +446,7 @@ const config: OxlintConfig = {
     "max-lines-per-function": "off",
 
     /**
-     * Disabling this rule in favour of unicorn/no-typeof-undefined, which is
+     * Disabling this rule in favor of unicorn/no-typeof-undefined, which is
      * more reasonable in my opinion.
      *
      * Example:
@@ -454,11 +463,15 @@ const config: OxlintConfig = {
     /**
      * Sorry, but I just love ternaries even when they're three levels nested.
      * Might be slightly unreadable, but visually - just pure beauty :)
-     *
-     * @type no-nested-ternary
      */
     "no-nested-ternary": "off",
     "no-ternary": "off",
+
+    /** We prefer named exports */
+    "prefer-default-export": "off",
+
+    /** Vars, lets and consts, defined separately, make code more readable */
+    "one-var": "off",
 
     //endregion
 
@@ -513,6 +526,23 @@ const config: OxlintConfig = {
     "typescript/no-unsafe-assignment": "off",
     "typescript/no-unsafe-call": "off",
     "typescript/no-unsafe-member-access": "off",
+
+    /**
+     * This rule is annoying. It requires adding a lot of exceptions. Example:
+     *
+     * ```ts
+     * import { ReactNode } from "react"
+     *
+     * type Props = Readonly<{ children: ReactNode }>
+     *
+     * function Component(props: Props) { ... }
+     * ```
+     *
+     * In this case oxlint going to yell, as ReactNode type is not readonly, and
+     * we'll have to add it as an exception. Eslint's "no-param-reassign" rule
+     * keeps us safe from accidentally modifying function parameters.
+     */
+    "typescript/prefer-readonly-parameter-types": "off",
 
     //endregion
 
@@ -587,41 +617,6 @@ const config: OxlintConfig = {
 
     //endregion
 
-    //region ------------- Modified TS rules -------------
-
-    "typescript/prefer-readonly-parameter-types": [
-      "error",
-      /**
-       * We can't control third-party params, that are inferred. We can annotate
-       * them explicitly, but that's an overkill.
-       *
-       * Example:
-       *
-       * ```ts
-       * import { it } from "vitest";
-       * // `context` param is inferred and can be made readonly
-       * // only by explicit annotation
-       * it("should do something", async (context) => {
-       *   // some test code
-       * });
-       * ```
-       */
-      {
-        ignoreInferredTypes: true,
-        treatMethodsAsReadonly: true,
-        allow: [
-          {
-            "from": "package",
-            "name": ["ReactNode", "ReactElement"],
-            "package": "react",
-          },
-          { "from": "lib", "name": ["Node", "Document", "ShadowRoot"] },
-        ],
-      },
-    ],
-
-    //endregion
-
     //region ------------- Disabled TS rules -------------
 
     /**
@@ -631,6 +626,25 @@ const config: OxlintConfig = {
      */
     "typescript/explicit-module-boundary-types": "off",
     "typescript/explicit-function-return-type": "off",
+
+    //endregion
+
+    //region ------------- Modified TS rules -------------
+
+    /**
+     * To be able to extend external modules, like process.env. Example:
+     *
+     * ```ts
+     * declare global {
+     *   namespace NodeJS {
+     *     interface ProcessEnv {
+     *       SOME_CUSTOM_ENV_VARIABLE?: "true" | "false";
+     *     }
+     *   }
+     * }
+     * ```
+     */
+    "typescript/no-namespace": ["error", { allowDeclarations: true }],
 
     //endregion
 
@@ -764,6 +778,12 @@ const config: OxlintConfig = {
      */
     "import/no-named-export": "off",
 
+    /**
+     * This is perfectly caught by TypeScript. It won't allow using node.js
+     * modules in browser apps.
+     */
+    "import/no-nodejs-modules": "off",
+
     //endregion
 
     //region ------------- OXC rules -------------
@@ -792,6 +812,23 @@ const config: OxlintConfig = {
     "oxc/number-arg-out-of-range": "error",
     "oxc/only-used-in-recursion": "error",
     "oxc/uninvoked-array-callback": "error",
+
+    //endregion
+
+    //region ------------- Disabled OXC rules -------------
+
+    /**
+     * When these rules are implemented by oxlint, we won't need to
+     * enable/disable specific built-ins or syntaxes. It would be done
+     * automatically base on the specified version of Node or ECMAScript.
+     *
+     * [n/no-unsupported-features/es-builtins](https://github.com/eslint-community/eslint-plugin-n/blob/master/docs/rules/no-unsupported-features/es-builtins.md)
+     * [n/no-unsupported-features/node-builtins](https://github.com/eslint-community/eslint-plugin-n/blob/master/docs/rules/no-unsupported-features/node-builtins.md)
+     * [n/no-unsupported-features/es-syntax](https://github.com/eslint-community/eslint-plugin-n/blob/master/docs/rules/no-unsupported-features/es-syntax.md)
+     */
+    "oxc/no-rest-spread-properties": "off",
+    "oxc/no-async-await": "off",
+    "oxc/no-optional-chaining": "off",
 
     //endregion
 
@@ -831,49 +868,6 @@ const config: OxlintConfig = {
     "promise/valid-params": "error",
 
     //endregion
-
-    /** We prefer named exports */
-    "prefer-default-export": "off",
-
-    /**
-     * In my opinion, vars, lets and consts, defined separately, make code more
-     * readable.
-     */
-    "one-var": "off",
-
-    /**
-     * When these rules are implemented by oxlint, we won't need to
-     * enable/disable specific built-ins or syntaxes. It would be done
-     * automatically base on the specified version of Node or ECMAScript.
-     *
-     * [n/no-unsupported-features/es-builtins](https://github.com/eslint-community/eslint-plugin-n/blob/master/docs/rules/no-unsupported-features/es-builtins.md)
-     * [n/no-unsupported-features/node-builtins](https://github.com/eslint-community/eslint-plugin-n/blob/master/docs/rules/no-unsupported-features/node-builtins.md)
-     * [n/no-unsupported-features/es-syntax](https://github.com/eslint-community/eslint-plugin-n/blob/master/docs/rules/no-unsupported-features/es-syntax.md)
-     */
-    "oxc/no-rest-spread-properties": "off",
-    "oxc/no-async-await": "off",
-    "oxc/no-optional-chaining": "off",
-
-    /**
-     * I don't like working with modules, that are globally available. I like
-     * everything to be as explicit as possible.
-     */
-    "import/no-nodejs-modules": "off",
-
-    /**
-     * To be able to extend external modules, like process.env. Example:
-     *
-     * ```ts
-     * declare global {
-     *   namespace NodeJS {
-     *     interface ProcessEnv {
-     *       SOME_CUSTOM_ENV_VARIABLE?: "true" | "false";
-     *     }
-     *   }
-     * }
-     * ```
-     */
-    "typescript/no-namespace": ["error", { allowDeclarations: true }],
   },
   overrides: [
     {

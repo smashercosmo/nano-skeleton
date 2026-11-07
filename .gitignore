@@ -13,3 +13,6 @@ dist
 !.idea/externalDependencies.xml
 !.idea/OxfmtSettings.xml
 
+
+# Vitest browser mode failure screenshots
+.vitest

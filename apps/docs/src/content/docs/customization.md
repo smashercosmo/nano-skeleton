@@ -8,20 +8,23 @@ The look is controlled by CSS custom properties:
 
 <div class="table-wrap">
 
-| Property                                         | Default                                                                          |
-| ------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `--nano-skeleton-background-image`               | A light/dark-aware horizontal gradient                                           |
-| `--nano-skeleton-background-size`                | `300%`                                                                           |
-| `--nano-skeleton-animation`                      | `shimmer 2s infinite ease-in-out`                                                |
-| `--nano-skeleton-inline-border-radius`           | `1`, roundness of the text bar ends, from `0` (square) to `1` (fully rounded)    |
-| `--nano-skeleton-letter-spacing`                 | `0`, extra space per character in the font-based [inline styles](#inline-styles) |
-| `--nano-skeleton-forced-colors-background-image` | A gray gradient mixed from system colors                                         |
+| Property                                         | Default                                                                                       |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `--nano-skeleton-background-image`               | A light/dark-aware horizontal gradient                                                        |
+| `--nano-skeleton-background-size`                | `300%`                                                                                        |
+| `--nano-skeleton-animation`                      | `nano-skeleton-shimmer 2s infinite ease-in-out`                                               |
+| `--nano-skeleton-inline-border-radius`           | `1`, roundness of the text bar ends, from `0` (square) to `1` (fully rounded)                 |
+| `--nano-skeleton-letter-spacing`                 | The inherited `letter-spacing`. Replaces it in the font-based [inline styles](#inline-styles) |
+| `--nano-skeleton-forced-colors-background-image` | A gray gradient mixed from system colors                                                      |
 
 </div>
 
-Each `<nano-skeleton>` inherits these from its ancestors, so set them on a
-parent element (or on `:root` to change all skeletons at once), not on the
-`nano-skeleton` element itself:
+Set them on any element: a skeleton inherits them from its ancestors, so a
+parent element (or `:root`, to change all skeletons at once) works as well as
+the `nano-skeleton` element itself.
+
+The default animation uses the `nano-skeleton-shimmer` keyframes, so a custom
+`--nano-skeleton-animation` can reuse them with a different duration or easing.
 
 ```css
 /* All skeletons on the page */

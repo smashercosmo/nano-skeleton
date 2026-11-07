@@ -85,7 +85,8 @@ if (logo && logoProvider) {
 
 //region ------------- Code blocks -------------
 
-async function copyCode({ currentTarget: button }: Readonly<Event>) {
+async function copyCode(event: Event) {
+  const button = event.currentTarget;
   if (!(button instanceof HTMLButtonElement)) {
     return;
   }

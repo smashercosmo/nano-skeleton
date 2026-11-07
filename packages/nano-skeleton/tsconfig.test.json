@@ -1,0 +1,7 @@
+{
+  "extends": "@internal/tsconfig/dom",
+  "include": ["test", "src/*.d.ts"],
+  "compilerOptions": {
+    "tsBuildInfoFile": "node_modules/tsconfig.test.tsbuildinfo"
+  }
+}

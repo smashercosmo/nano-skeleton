@@ -2,6 +2,7 @@ import type { ContextRequestEvent } from "#root/context-request-event.js";
 import type { LoadingCallback } from "#root/types.js";
 
 import { PROVIDER_NAME, SKELETON_CONTEXT } from "#root/constants.js";
+import { ContextProviderEvent } from "#root/context-provider-event.js";
 
 export class SkeletonProvider extends HTMLElement {
   public static readonly observedAttributes = ["loading"];
@@ -20,31 +21,28 @@ export class SkeletonProvider extends HTMLElement {
      * Adding listener from the constructor so the provider is ready before any
      * descendant connects and asks for context.
      */
-    this.addEventListener(
-      "context-request",
-      (event: Readonly<ContextRequestEvent>) => {
-        if (
-          event.context !== SKELETON_CONTEXT ||
-          typeof event.callback !== "function"
-        ) {
-          return;
-        }
+    this.addEventListener("context-request", (event: ContextRequestEvent) => {
+      if (
+        event.context !== SKELETON_CONTEXT ||
+        typeof event.callback !== "function"
+      ) {
+        return;
+      }
 
-        /** The nearest provider wins */
-        event.stopPropagation();
+      /** The nearest provider wins */
+      event.stopPropagation();
 
-        const { callback: subscriber } = event;
+      const { callback: subscriber } = event;
 
-        if (event.subscribe) {
-          this.#subscribers.add(subscriber);
-          subscriber(this.loading, () => {
-            this.#subscribers.delete(subscriber);
-          });
-        } else {
-          subscriber(this.loading);
-        }
-      },
-    );
+      if (event.subscribe) {
+        this.#subscribers.add(subscriber);
+        subscriber(this.loading, () => {
+          this.#subscribers.delete(subscriber);
+        });
+      } else {
+        subscriber(this.loading);
+      }
+    });
   }
 
   public get loading() {
@@ -53,6 +51,21 @@ export class SkeletonProvider extends HTMLElement {
 
   public set loading(value: boolean) {
     this.toggleAttribute("loading", value);
+  }
+
+  public connectedCallback() {
+    /**
+     * `loading` set before the element was defined is an own property that
+     * shadows the accessor. Re-sets it through the accessor.
+     */
+    if (Object.hasOwn(this, "loading")) {
+      const value: unknown = Reflect.get(this, "loading");
+      Reflect.deleteProperty(this, "loading");
+      Reflect.set(this, "loading", value);
+    }
+
+    /** Lets skeletons that connected before this provider find it */
+    this.dispatchEvent(new ContextProviderEvent(SKELETON_CONTEXT));
   }
 
   public attributeChangedCallback(

@@ -15,15 +15,18 @@ const FONTS = {
 
 type FontVariant = keyof typeof FONTS;
 
-const cache: Partial<Record<FontVariant, FontFace>> = {};
+/** The fonts registered in each document */
+const registered = new WeakMap<Document, Set<FontVariant>>();
 
 /**
- * Registers a font used by the inline modes that draw text as bars. Fonts added
- * to `document.fonts` are also available inside shadow roots, unlike
- * `@font-face` rules in adopted stylesheets.
+ * Registers a font used by the inline modes that draw text as bars, in the
+ * skeleton's own document. Fonts added to `document.fonts` are also available
+ * inside shadow roots, unlike `@font-face` rules in adopted stylesheets.
  */
-function registerFont(variant: FontVariant) {
-  if (cache[variant]) {
+function registerFont(variant: FontVariant, document: Document) {
+  const variants = registered.get(document) ?? new Set<FontVariant>();
+  const window = document.defaultView;
+  if (variants.has(variant) || !window) {
     return;
   }
   const { family, data } = FONTS[variant];
@@ -32,9 +35,10 @@ function registerFont(variant: FontVariant) {
    * The text is transparent anyway, so blocking rendering until the font is
    * parsed avoids flashing a fallback font
    */
-  const font = new FontFace(family, bytes, { display: "block" });
-  cache[variant] = font;
+  const font = new window.FontFace(family, bytes, { display: "block" });
   document.fonts.add(font);
+  variants.add(variant);
+  registered.set(document, variants);
 }
 
 export { registerFont };
