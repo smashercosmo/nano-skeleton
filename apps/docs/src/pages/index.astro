@@ -1,0 +1,188 @@
+---
+import { getCollection, render } from "astro:content";
+
+import Demo from "#components/demo.astro";
+import Layout from "#components/layout.astro";
+import Toc from "#components/toc.astro";
+import { REPO_URL } from "#root/site.js";
+
+const entries = await getCollection("docs");
+const sections = await Promise.all(
+  entries
+    .toSorted((left, right) => left.data.order - right.data.order)
+    .map(async (entry) => {
+      const { Content } = await render(entry);
+      return {
+        id: entry.id,
+        title: entry.data.title,
+        label: entry.data.label ?? entry.data.title,
+        demo: entry.data.demo,
+        Content,
+      };
+    }),
+);
+const toc = sections.map(({ id, label }) => ({ id, label }));
+---
+
+<Layout
+  title="nano-skeleton: the perfect skeleton component"
+  description="A tiny, framework-agnostic skeleton loader built on Web Components. Zero layout shift, no dependencies."
+>
+  <div class="page">
+    <aside class="sidebar">
+      <nav aria-label="On this page">
+        <Toc items={toc} />
+      </nav>
+    </aside>
+    <main class="main">
+      <section class="hero">
+        <h1>The perfect skeleton component</h1>
+        <p>
+          A tiny, framework-agnostic skeleton loader built on Web Components.
+          Wrap your real UI, flip one <code>loading</code> switch, and get a
+          placeholder of the exact same shape. Zero layout shift, no
+          dependencies.
+        </p>
+        <div class="hero__actions">
+          <a class="cta" href="#getting-started">Get started</a>
+          <a class="cta cta--ghost" href="#playground">Playground</a>
+          <a class="cta cta--ghost" href={REPO_URL}>GitHub</a>
+        </div>
+      </section>
+
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <nav aria-label="On this page">
+          <Toc items={toc} />
+        </nav>
+      </details>
+
+      {
+        sections.map(({ id, title, demo, Content }) => (
+          <section class="section" id={id}>
+            <h2>
+              {title}
+              <a class="anchor" href={`#${id}`} aria-label={`Link to ${title}`}>
+                #
+              </a>
+            </h2>
+            {demo !== undefined && <Demo name={demo} />}
+            <div class="prose">
+              <Content />
+            </div>
+          </section>
+        ))
+      }
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .page {
+      grid-template-columns: 13rem minmax(0, 1fr);
+      gap: 3rem;
+    }
+
+    .sidebar {
+      display: block;
+    }
+
+    .sidebar nav {
+      position: sticky;
+      top: 1rem;
+      max-height: calc(100dvh - 2rem);
+      overflow-y: auto;
+      padding-top: 2.5rem;
+    }
+
+    .toc-mobile {
+      display: none;
+    }
+  }
+
+  .main {
+    min-width: 0;
+    max-width: 52rem;
+  }
+
+  .hero {
+    padding: 3rem 0 2rem;
+  }
+
+  .hero h1 {
+    margin: 0 0 1rem;
+    font-size: clamp(2rem, 6vw, 3rem);
+    letter-spacing: -0.035em;
+  }
+
+  .hero p {
+    max-width: 38rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: 1.1rem;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .cta {
+    padding: 0.5rem 1.1rem;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .cta--ghost {
+    background: transparent;
+    color: var(--accent);
+  }
+
+  .toc-mobile {
+    margin-bottom: 2rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .toc-mobile summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .toc-mobile nav {
+    margin-top: 0.5rem;
+  }
+
+  .section {
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .prose > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  .prose > :global(:last-child) {
+    margin-bottom: 0;
+  }
+</style>

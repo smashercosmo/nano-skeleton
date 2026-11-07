@@ -1,4 +1,7 @@
 {
   "extends": "@internal/tsconfig/dom",
-  "include": ["src"]
+  "include": ["src"],
+  "compilerOptions": {
+    "tsBuildInfoFile": "node_modules/tsconfig.lib.tsbuildinfo"
+  }
 }

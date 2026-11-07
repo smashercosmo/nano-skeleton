@@ -1,0 +1,41 @@
+---
+interface Props {
+  items: readonly { id: string; label: string }[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="toc">
+  {
+    items.map(({ id, label }) => (
+      <li>
+        <a href={`#${id}`}>{label}</a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .toc {
+    display: grid;
+    gap: 0.15rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9rem;
+  }
+
+  a {
+    display: block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.375rem;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  a:hover {
+    background: var(--surface);
+    color: var(--fg);
+  }
+</style>

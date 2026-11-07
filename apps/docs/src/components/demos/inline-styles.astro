@@ -1,0 +1,59 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+
+const STYLES = [
+  "lines-bg-per-line",
+  "lines-bg-per-block",
+  "words-bg-per-line",
+  "words-bg-per-block",
+] as const;
+---
+
+<DemoFrame label="Inline styles demo">
+  <nano-skeleton-provider class="grid">
+    {
+      STYLES.map((style) => (
+        <div class="card">
+          <code class="caption">inline="{style}"</code>
+          <h3>
+            <nano-skeleton inline={style}>Lorem ipsum dolor</nano-skeleton>
+          </h3>
+          <p>
+            <nano-skeleton inline={style}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </nano-skeleton>
+          </p>
+        </div>
+      ))
+    }
+  </nano-skeleton-provider>
+</DemoFrame>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .caption {
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  h3 {
+    margin: 0.5rem 0 0.25rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+</style>

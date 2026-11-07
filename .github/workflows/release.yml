@@ -108,8 +108,10 @@ jobs:
           cache: true
           require-lockfile: true
 
+      # Only the publishable packages, so no app build tooling runs in a job
+      # that can publish to npm
       - name: Build packages
-        run: pnpm -r build
+        run: pnpm --filter "./packages/*" build
 
       # Uploads to npm's staging area instead of the live registry. Skips
       # private packages and versions already on the registry

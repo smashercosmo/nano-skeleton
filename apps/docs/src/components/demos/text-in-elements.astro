@@ -1,0 +1,60 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+---
+
+<DemoFrame label="Text wrapped in elements demo">
+  <nano-skeleton-provider class="rows">
+    <div class="row">
+      <span class="caption">Without <code>inline</code>: one plain box</span>
+      <p>
+        <nano-skeleton><a href="#text-in-elements">Read the full post</a></nano-skeleton>
+      </p>
+    </div>
+    <div class="row">
+      <span class="caption">With <code>inline</code>: the underline stays</span>
+      <p>
+        <nano-skeleton inline=""><a href="#text-in-elements">Read the full post</a></nano-skeleton>
+      </p>
+    </div>
+    <div class="row">
+      <span class="caption">With <code>inline</code> and a <code>&lt;span&gt;</code></span>
+      <p>
+        <nano-skeleton inline=""
+          ><a href="#text-in-elements"><span>Read the full post</span></a></nano-skeleton
+        >
+      </p>
+    </div>
+    <div class="row">
+      <span class="caption">Mixed inline elements</span>
+      <p>
+        <nano-skeleton inline=""
+          ><span>Some <strong>bold</strong> and <em>italic</em> words that wrap
+            over a couple of lines when the container is narrow enough.</span
+          ></nano-skeleton
+        >
+      </p>
+    </div>
+  </nano-skeleton-provider>
+</DemoFrame>
+
+<style>
+  .rows {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .row {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .caption {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  p {
+    margin: 0;
+    max-width: 28rem;
+  }
+</style>

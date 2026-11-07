@@ -1,0 +1,71 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+
+const items = [
+  { name: "Ada Lovelace", role: "Analyst" },
+  { name: "Grace Hopper", role: "Compiler engineer" },
+  { name: "Alan Turing", role: "Codebreaker" },
+  { name: "Margaret Hamilton", role: "Flight software lead" },
+];
+---
+
+<DemoFrame label="Independent loading states demo">
+  <ul class="list">
+    {
+      items.map(({ name, role }) => (
+        <li>
+          <nano-skeleton-provider data-delay="random">
+            <nano-skeleton>
+              <span class="avatar" aria-hidden="true">
+                {name.charAt(0)}
+              </span>
+            </nano-skeleton>
+            <span class="text">
+              <strong>
+                <nano-skeleton>{name}</nano-skeleton>
+              </strong>
+              <small>
+                <nano-skeleton>{role}</nano-skeleton>
+              </small>
+            </span>
+          </nano-skeleton-provider>
+        </li>
+      ))
+    }
+  </ul>
+</DemoFrame>
+
+<style>
+  .list {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  nano-skeleton-provider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .text {
+    display: grid;
+  }
+
+  small {
+    color: var(--muted);
+  }
+</style>

@@ -910,9 +910,28 @@ const config: OxlintConfig = {
     },
 
     {
-      files: ["./packages/nano-skeleton/**", "apps/website/src/**"],
+      files: [
+        "./packages/nano-skeleton/**",
+        "apps/website/src/**",
+        "apps/docs/src/**",
+      ],
       env: {
         browser: true,
+      },
+    },
+
+    {
+      files: ["*.astro"],
+      globals: {
+        /** Astro's component global, available in frontmatter */
+        Astro: "readonly",
+      },
+      rules: {
+        /** Frontmatter and inline scripts don't have to be modules */
+        "import/unambiguous": "off",
+
+        /** Frontmatter runs at build time, awaiting data there is idiomatic */
+        "node/no-top-level-await": "off",
       },
     },
 

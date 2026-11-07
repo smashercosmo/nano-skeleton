@@ -1,0 +1,64 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+---
+
+<DemoFrame label="Nested providers demo">
+  <nano-skeleton-provider class="page" data-delay="700">
+    <h3><nano-skeleton>Dashboard</nano-skeleton></h3>
+    <p class="muted">
+      <nano-skeleton>Outer provider: finishes first</nano-skeleton>
+    </p>
+    <nano-skeleton-provider class="stats" data-delay="2200">
+      <div class="stat">
+        <span class="muted"><nano-skeleton>Revenue</nano-skeleton></span>
+        <strong><nano-skeleton>$12,345</nano-skeleton></strong>
+      </div>
+      <div class="stat">
+        <span class="muted"><nano-skeleton>Orders</nano-skeleton></span>
+        <strong><nano-skeleton>1,024</nano-skeleton></strong>
+      </div>
+      <div class="stat">
+        <span class="muted"><nano-skeleton>Inner provider</nano-skeleton></span>
+        <strong><nano-skeleton>Loads later</nano-skeleton></strong>
+      </div>
+    </nano-skeleton-provider>
+  </nano-skeleton-provider>
+</DemoFrame>
+
+<style>
+  .page {
+    display: block;
+  }
+
+  h3 {
+    margin: 0 0 0.25rem;
+  }
+
+  .muted {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 0.75rem;
+  }
+
+  .stat {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+
+  .stat .muted {
+    margin: 0;
+  }
+
+  strong {
+    font-size: 1.4rem;
+  }
+</style>

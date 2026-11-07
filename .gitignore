@@ -1,9 +1,12 @@
 # Logs
 *.log
 pnpm-debug.log*
+.pnpm-store
 
 node_modules
 dist
+*.tsbuildinfo
+.DS_Store
 
 # Editor directories and files
 .idea/**

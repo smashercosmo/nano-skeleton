@@ -1,0 +1,39 @@
+---
+/** Renders a demo by the name used in the `demo` field of docs sections */
+import Customization from "#components/demos/customization.astro";
+import ElementMode from "#components/demos/element-mode.astro";
+import InlineMode from "#components/demos/inline-mode.astro";
+import InlineStyles from "#components/demos/inline-styles.astro";
+import Interactive from "#components/demos/interactive.astro";
+import List from "#components/demos/list.astro";
+import Nested from "#components/demos/nested.astro";
+import Playground from "#components/demos/playground.astro";
+import Rtl from "#components/demos/rtl.astro";
+import TextInElements from "#components/demos/text-in-elements.astro";
+
+interface Props {
+  name: string;
+}
+
+const DEMOS = new Map([
+  ["customization", Customization],
+  ["element-mode", ElementMode],
+  ["inline-mode", InlineMode],
+  ["inline-styles", InlineStyles],
+  ["interactive", Interactive],
+  ["list", List],
+  ["nested", Nested],
+  ["playground", Playground],
+  ["rtl", Rtl],
+  ["text-in-elements", TextInElements],
+]);
+
+const { name } = Astro.props;
+const Component = DEMOS.get(name);
+
+if (!Component) {
+  throw new Error(`Unknown demo "${name}"`);
+}
+---
+
+<Component />

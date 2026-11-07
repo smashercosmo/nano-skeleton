@@ -1,0 +1,63 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+---
+
+<DemoFrame label="Interactive skeletons demo">
+  <p class="hint">
+    Turn loading on, then press <kbd>Tab</kbd> from the button above: focus
+    skips the default link and lands on the interactive ones. The underline
+    stays visible by default, so the placeholder still reads as a link.
+  </p>
+  <nano-skeleton-provider class="links">
+    <div>
+      <span class="caption">Default: inert while loading</span>
+      <nano-skeleton inline=""
+        ><a href="#interactive">Default link</a></nano-skeleton
+      >
+    </div>
+    <div>
+      <span class="caption"><code>interactive</code>: underline stays</span>
+      <nano-skeleton inline="" interactive=""
+        ><a href="#interactive">Interactive link</a></nano-skeleton
+      >
+    </div>
+    <div>
+      <span class="caption"
+        ><code>interactive</code> + <code>&lt;span&gt;</code>: underline
+        hidden</span
+      >
+      <nano-skeleton inline="" interactive=""
+        ><a href="#interactive"><span>Interactive link</span></a></nano-skeleton
+      >
+    </div>
+  </nano-skeleton-provider>
+</DemoFrame>
+
+<style>
+  .hint {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  kbd {
+    padding: 0 0.3em;
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    font-family: var(--mono);
+    font-size: 0.85em;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 3rem;
+  }
+
+  .caption {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+</style>
