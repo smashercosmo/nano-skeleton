@@ -13,6 +13,10 @@ element is already registered.
 Registers `<nano-skeleton>` with `customElements`. Does nothing if the element
 is already registered.
 
+The elements can be defined in any order and at any time: skeletons find a
+provider that is defined after them, and properties set on the elements before
+they're defined are applied once they are.
+
 ### `<nano-skeleton-provider>`
 
 <div class="table-wrap">
@@ -34,6 +38,7 @@ While loading, the provider is exposed to assistive technology as
 | -------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------ |
 | `interactive`        | `boolean`    | Keeps the content focusable and clickable while loading.                                                           |
 | `inline`             | `InlineMode` | Forces inline mode, e.g. for text inside a link, and picks how text is drawn. See [Inline styles](#inline-styles). |
+| `loading`            | `boolean`    | Read-only. Whether the nearest provider is loading. Set `loading` on the provider instead.                         |
 
 </div>
 

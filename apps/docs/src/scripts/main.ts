@@ -85,23 +85,44 @@ if (logo && logoProvider) {
 
 //region ------------- Code blocks -------------
 
+/** Timers that switch "Copied" back to "Copy", restarted on every click */
+const resetTimers = new WeakMap<
+  HTMLButtonElement,
+  ReturnType<typeof setTimeout>
+>();
+
 async function copyCode(event: Event) {
   const button = event.currentTarget;
   if (!(button instanceof HTMLButtonElement)) {
     return;
   }
-  await navigator.clipboard.writeText(
-    button.parentElement?.querySelector("code")?.textContent ?? "",
-  );
-  button.textContent = "Copied";
+  try {
+    await navigator.clipboard.writeText(
+      button.parentElement?.querySelector("code")?.textContent ?? "",
+    );
+    button.textContent = "Copied";
+  } catch {
+    /** No clipboard access, e.g. denied by the user */
+    button.textContent = "Copy failed";
+  }
   button.dataset["copied"] = "";
-  setTimeout(() => {
-    button.textContent = "Copy";
-    delete button.dataset["copied"];
-  }, 1500);
+  globalThis.clearTimeout(resetTimers.get(button));
+  resetTimers.set(
+    button,
+    globalThis.setTimeout(() => {
+      button.textContent = "Copy";
+      delete button.dataset["copied"];
+    }, 1500),
+  );
 }
 
+/**
+ * The button goes into a wrapper next to the code block, not into the block
+ * itself, which scrolls horizontally and would take the button with it
+ */
 for (const pre of document.querySelectorAll("pre:has(> code)")) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "code-block";
   const button = document.createElement("button");
   button.type = "button";
   button.className = "copy";
@@ -109,17 +130,26 @@ for (const pre of document.querySelectorAll("pre:has(> code)")) {
   button.addEventListener("click", (event) => {
     void copyCode(event);
   });
-  pre.append(button);
+  pre.before(wrapper);
+  wrapper.append(pre, button);
 }
 
-/** "#" links on headings coming from markdown */
-for (const heading of document.querySelectorAll(".prose h3[id]")) {
+/**
+ * "#" links on headings coming from markdown, in the docs sections only: the
+ * changelog repeats the same h3 headings in every version. A sibling of the
+ * heading, so the link's label doesn't become part of the heading's accessible
+ * name.
+ */
+for (const heading of document.querySelectorAll(".section .prose h3[id]")) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "heading";
   const anchor = document.createElement("a");
   anchor.className = "anchor";
   anchor.href = `#${heading.id}`;
   anchor.setAttribute("aria-label", `Link to ${heading.textContent}`);
   anchor.textContent = "#";
-  heading.append(anchor);
+  heading.before(wrapper);
+  wrapper.append(heading, anchor);
 }
 
 requestHighlight();

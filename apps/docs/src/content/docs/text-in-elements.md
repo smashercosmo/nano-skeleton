@@ -32,3 +32,7 @@ in a `<span>`:
   <a href="/posts/42"><span>Read the full post</span></a>
 </nano-skeleton>
 ```
+
+This doesn't work in the `-bg-per-block` [inline styles](#inline-styles),
+where the text, including its decorations, shapes a single placeholder: the
+underline is drawn as part of it.

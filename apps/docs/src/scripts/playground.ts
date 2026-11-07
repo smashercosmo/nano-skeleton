@@ -84,16 +84,38 @@ function animation({ animation: name, duration }: Readonly<State>) {
   return `${name} ${duration}s infinite ease-in-out`;
 }
 
-/** Custom properties applied to the card, in the order they are printed */
-function properties(state: Readonly<State>) {
-  const result: [string, string][] = [
-    ["font-size", `${state.fontSize}px`],
-    ["max-width", `${state.width}px`],
-    ["--nano-skeleton-inline-border-radius", String(state.inlineRadius)],
-    ["--nano-skeleton-letter-spacing", `${state.letterSpacing}em`],
-    ["--nano-skeleton-animation", animation(state)],
-    ["--nano-skeleton-background-size", `${state.bgSize}%`],
-  ];
+const DEFAULT_ANIMATION = "nano-skeleton-shimmer 2s infinite ease-in-out";
+
+/** Every custom property the playground can set */
+const CUSTOM_PROPERTIES = [
+  "--nano-skeleton-inline-border-radius",
+  "--nano-skeleton-letter-spacing",
+  "--nano-skeleton-animation",
+  "--nano-skeleton-background-size",
+  "--nano-skeleton-background-image",
+];
+
+/**
+ * Custom properties that differ from the library defaults, in the order they
+ * are printed. The defaults need no declaration.
+ */
+function customProperties(state: Readonly<State>) {
+  const result: [string, string][] = [];
+  if (state.inlineRadius !== 1) {
+    result.push([
+      "--nano-skeleton-inline-border-radius",
+      String(state.inlineRadius),
+    ]);
+  }
+  if (state.letterSpacing !== 0) {
+    result.push(["--nano-skeleton-letter-spacing", `${state.letterSpacing}em`]);
+  }
+  if (animation(state) !== DEFAULT_ANIMATION) {
+    result.push(["--nano-skeleton-animation", animation(state)]);
+  }
+  if (state.bgSize !== 300) {
+    result.push(["--nano-skeleton-background-size", `${state.bgSize}%`]);
+  }
   const image = gradient(state.colors);
   if (image !== "") {
     result.push(["--nano-skeleton-background-image", image]);
@@ -102,7 +124,11 @@ function properties(state: Readonly<State>) {
 }
 
 function css(state: Readonly<State>) {
-  const declarations = properties(state)
+  const declarations = [
+    ["font-size", `${state.fontSize}px`],
+    ["max-width", `${state.width}px`],
+    ...customProperties(state),
+  ]
     .map(([name, value]) => `  ${name}: ${value};`)
     .join("\n");
   const keyframes =
@@ -132,9 +158,18 @@ function html(state: Readonly<State>, loading: boolean) {
       <img class="avatar" src="/avatar.png" width="64" height="64" alt="" />
     </nano-skeleton>
     <h3><nano-skeleton${style}>Jane Cooper</nano-skeleton></h3>
-    <p><nano-skeleton${style}>Designs calm, accessible interfaces…</nano-skeleton></p>
+    <p><nano-skeleton${style}>Senior product designer</nano-skeleton></p>
+    <p>
+      <nano-skeleton${style}>
+        Designs calm, accessible interfaces and writes about the small
+        details that make loading states feel fast.
+      </nano-skeleton>
+    </p>
     <nano-skeleton${linkAttributes}>
       <a href="/profile">View profile</a>
+    </nano-skeleton>
+    <nano-skeleton>
+      <button type="button">Follow</button>
     </nano-skeleton>
   </article>
 </nano-skeleton-provider>`;
@@ -152,16 +187,11 @@ function outputs(state: Readonly<State>): Record<string, string> {
   };
 }
 
-async function initPlayground() {
-  /**
-   * Setting `inline` or `interactive` before the elements are upgraded would
-   * create own properties that shadow the element's accessors
-   */
-  await Promise.all([
-    customElements.whenDefined("nano-skeleton"),
-    customElements.whenDefined("nano-skeleton-provider"),
-  ]);
-
+/**
+ * Doesn't wait for the elements to be defined: properties set before that are
+ * applied once they are
+ */
+function initPlayground() {
   const form = document.querySelector<HTMLFormElement>("[data-pg-form]");
   const card = document.querySelector<SkeletonProvider>("[data-pg-card]");
   const link = document.querySelector<Skeleton>("[data-pg-link]");
@@ -187,13 +217,11 @@ async function initPlayground() {
     card.style.setProperty("--pg-font-size", `${state.fontSize}px`);
     card.style.setProperty("--pg-width", `${state.width}px`);
     card.style.setProperty("--pg-avatar-radius", `${state.avatarRadius}%`);
-    for (const [name, value] of properties(state)) {
-      if (name.startsWith("--")) {
-        card.style.setProperty(name, value);
-      }
+    for (const name of CUSTOM_PROPERTIES) {
+      card.style.removeProperty(name);
     }
-    if (state.colors === "default") {
-      card.style.removeProperty("--nano-skeleton-background-image");
+    for (const [name, value] of customProperties(state)) {
+      card.style.setProperty(name, value);
     }
 
     article.dir = state.dir;

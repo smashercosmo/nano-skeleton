@@ -37,7 +37,10 @@ export function UserCard({ id }: { id: string }) {
 Placeholder text while loading gives the skeleton a realistic size, as it's
 never visible to the user.
 
-To get JSX type checking for the custom elements, add a declaration file:
+The package declares the elements for DOM APIs, so
+`document.querySelector("nano-skeleton")` or a `useRef<Skeleton>()` attached to
+one is typed without any setup. To get JSX type checking for the custom
+elements, add a declaration file:
 
 ```ts
 // nano-skeleton.d.ts

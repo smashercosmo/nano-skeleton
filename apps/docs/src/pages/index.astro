@@ -60,12 +60,12 @@ const toc = sections.map(({ id, label }) => ({ id, label }));
       {
         sections.map(({ id, title, demo, Content }) => (
           <section class="section" id={id}>
-            <h2>
-              {title}
+            <div class="heading">
+              <h2>{title}</h2>
               <a class="anchor" href={`#${id}`} aria-label={`Link to ${title}`}>
                 #
               </a>
-            </h2>
+            </div>
             {demo !== undefined && <Demo name={demo} />}
             <div class="prose">
               <Content />

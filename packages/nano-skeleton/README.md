@@ -28,7 +28,8 @@ for a shimmering placeholder of the same shape.
 ## Features
 
 - **Zero layout shift.** The skeleton is drawn over your real markup, so the
-  loading state has the exact same size as the loaded one.
+  loading state has the exact same size as the loaded one. (The optional
+  font-based inline styles only approximate how text wraps.)
 - **One switch per region.** A `<nano-skeleton-provider>` controls every
   `<nano-skeleton>` inside it, no matter how deeply nested.
 - **Text-aware.** Inline text gets a per-line placeholder that follows line

@@ -160,7 +160,16 @@ input {
   white-space: nowrap;
 }
 
-/* Copy button added to code blocks by the client script */
+/* Copy button and its wrapper, added to code blocks by the client script */
+.code-block {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.code-block > pre {
+  margin: 0;
+}
+
 .copy {
   position: absolute;
   top: 0.5rem;
@@ -175,28 +184,57 @@ input {
   transition: opacity 0.15s;
 }
 
-pre:hover .copy,
+.code-block:hover .copy,
 .copy:focus-visible,
 .copy[data-copied] {
   opacity: 1;
 }
 
+/**
+ * Without hover, the button is always shown, so the code starts below it
+ * instead of underneath it
+ */
 @media (hover: none) {
   .copy {
     opacity: 1;
   }
+
+  .code-block > pre {
+    padding-top: 2.25rem;
+  }
 }
 
-/* Heading anchors */
+/**
+ * Heading anchors: the "#" link is a sibling of the heading, so it isn't part
+ * of the heading's accessible name. The wrapper takes over the heading's
+ * margins.
+ */
+.heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+}
+
+.heading > :is(h2, h3) {
+  margin: 0;
+}
+
+.heading:has(> h2) {
+  margin: 0 0 1rem;
+}
+
+.heading:has(> h3) {
+  margin: 2rem 0 0.75rem;
+}
+
 .anchor {
-  margin-inline-start: 0.4em;
   color: var(--muted);
   font-weight: 400;
   text-decoration: none;
   opacity: 0;
 }
 
-:is(h2, h3):hover .anchor,
+.heading:hover .anchor,
 .anchor:focus-visible {
   opacity: 1;
 }

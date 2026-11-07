@@ -8,6 +8,7 @@ const HEADING = /<h2 id="[^"]*">(?<version>[^<]+)<\/h2>/v;
 /**
  * Splits the rendered changelog into versions, so each one gets a readable
  * anchor (#0.7.0 instead of #070) and a badge when it has breaking changes.
+ * The "#" link is a sibling of the heading, so it isn't part of its name.
  */
 const source = await compiledContent();
 const html = source
@@ -20,7 +21,7 @@ const html = source
     const badge = chunk.includes("BREAKING")
       ? ' <span class="badge badge--danger">Breaking</span>'
       : "";
-    const heading = `<h2 id="${version}">${version}${badge}<a class="anchor" href="#${version}" aria-label="Link to ${version}">#</a></h2>`;
+    const heading = `<div class="heading" id="${version}"><h2>${version}${badge}</h2><a class="anchor" href="#${version}" aria-label="Link to ${version}">#</a></div>`;
     return chunk.replace(HEADING, heading);
   })
   .join("");
@@ -47,10 +48,14 @@ const html = source
     letter-spacing: -0.035em;
   }
 
-  .changelog :global(h2) {
+  /* The wrapper around each version heading and its "#" link */
+  .changelog :global(.heading) {
     margin-top: 2.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border);
+  }
+
+  .changelog :global(h2) {
     font-family: var(--mono);
     font-size: 1.35rem;
   }
