@@ -56,8 +56,26 @@ const options = ["auto", "light", "dark"] as const;
       }
     }
 
+    /**
+     * Forced colors mode overrides color-scheme with the user's own palette,
+     * so the theme can't be switched there
+     */
+    const forcedColors = matchMedia("(forced-colors: active)");
+
+    function syncForcedColors() {
+      switcher.disabled = forcedColors.matches;
+      if (forcedColors.matches) {
+        switcher.title =
+          "Unavailable in forced colors mode: the page uses your system colors";
+      } else {
+        switcher.removeAttribute("title");
+      }
+    }
+
     /** Updates the stored value when the user switches the theme */
     switcher.addEventListener("change", (event) => save(event.target.value));
+
+    forcedColors.addEventListener("change", syncForcedColors);
 
     /**
      * The theme was changed in a different tab. The `storage` event only
@@ -80,6 +98,7 @@ const options = ["auto", "light", "dark"] as const;
     });
 
     select(load());
+    syncForcedColors();
   })();
 </script>
 
@@ -108,6 +127,42 @@ const options = ["auto", "light", "dark"] as const;
 
   label:has(:focus-visible) {
     outline: 2px solid var(--accent);
+  }
+
+  /**
+   * Disabled only in forced colors mode, where system colors are kept. Faint
+   * diagonal lines behind the labels mark it as unavailable. Forced colors
+   * mode drops gradients, so the lines opt out of it and use system colors
+   * only, which follow the user's palette.
+   */
+  .theme-switcher:disabled {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .theme-switcher:disabled::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    forced-color-adjust: none;
+    background: repeating-linear-gradient(
+      -45deg,
+      color-mix(in oklch, GrayText 35%, Canvas) 0 1px,
+      transparent 0 5px
+    );
+  }
+
+  .theme-switcher:disabled label {
+    color: GrayText;
+    cursor: default;
+  }
+
+  /** The checked label's background would cover the lines */
+  .theme-switcher:disabled label:has(:checked) {
+    background: none;
   }
 
   input {

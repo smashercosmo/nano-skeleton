@@ -7,9 +7,10 @@ In forced colors mode (such as Windows High Contrast), browsers remove gradient
 backgrounds, which would make the skeleton invisible. nano-skeleton opts its
 placeholders out of forced colors and redraws them with a neutral gradient mixed
 from the `CanvasText` and `Canvas` system colors, so they follow the user's
-palette and keep the shimmer. Text decorations that stay visible while loading,
-such as a link's underline, keep their system colors: `LinkText` for links and
-`CanvasText` for the rest.
+palette and keep the shimmer. Text decorations, borders and outlines that stay
+visible while loading, such as a link's underline or a button's border, keep
+their system colors: `LinkText` for links and `CanvasText` for the rest. Box
+shadows are removed, as forced colors mode does everywhere else.
 
 `--nano-skeleton-background-image` is ignored in this mode, since custom colors
 would bypass the user's palette. Use

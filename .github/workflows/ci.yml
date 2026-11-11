@@ -4,11 +4,18 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Lets the release workflow run the same checks before it publishes
+  workflow_call:
 
 permissions: {}
 
+# Pull requests: one run per branch, a new push cancels the old run. Everything
+# else gets a group of its own (the run id), so runs never wait for each other:
+# GitHub cancels a waiting run when a newer one arrives, and a cancelled check
+# would silently skip a release. `github.workflow` is the calling workflow's
+# name when this one is called from the release workflow
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:

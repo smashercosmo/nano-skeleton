@@ -8,14 +8,17 @@ The look is controlled by CSS custom properties:
 
 <div class="table-wrap">
 
-| Property                                         | Default                                                                                       |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| `--nano-skeleton-background-image`               | A light/dark-aware horizontal gradient                                                        |
-| `--nano-skeleton-background-size`                | `300%`                                                                                        |
-| `--nano-skeleton-animation`                      | `nano-skeleton-shimmer 2s infinite ease-in-out`                                               |
-| `--nano-skeleton-inline-border-radius`           | `1`, roundness of the text bar ends, from `0` (square) to `1` (fully rounded)                 |
-| `--nano-skeleton-letter-spacing`                 | The inherited `letter-spacing`. Replaces it in the font-based [inline styles](#inline-styles) |
-| `--nano-skeleton-forced-colors-background-image` | A gray gradient mixed from system colors                                                      |
+| Property                                         | Default                                                                                   |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `--nano-skeleton-background-image`               | A light/dark-aware horizontal gradient                                                    |
+| `--nano-skeleton-background-size`                | `300%`                                                                                    |
+| `--nano-skeleton-animation`                      | `nano-skeleton-shimmer 2s infinite ease-in-out`                                           |
+| `--nano-skeleton-inline-border-radius`           | `1`, how round the text bar ends are: from `0` (square) to `1` (fully round)              |
+| `--nano-skeleton-inline-glyph-width`             | `0.5`, the width of a character of inline text, in em. See [Inline modes](#inline-styles) |
+| `--nano-skeleton-inline-ascent`                  | `0.71`, how far the text bars reach above the baseline, in em                             |
+| `--nano-skeleton-inline-descent`                 | `0`, how far the text bars reach below the baseline, in em                                |
+| `--nano-skeleton-inline-baseline-shift`          | `0`, moves the text bars up onto the page font's baseline, in em                          |
+| `--nano-skeleton-forced-colors-background-image` | A gray gradient mixed from system colors                                                  |
 
 </div>
 

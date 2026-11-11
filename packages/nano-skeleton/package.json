@@ -38,9 +38,12 @@
   },
   "devDependencies": {
     "@internal/tsconfig": "workspace:*",
+    "@lit/context": "catalog:test",
+    "@lit/reactive-element": "catalog:test",
     "@tsdown/css": "catalog:dev",
     "@types/node": "catalog:types",
     "@vitest/browser-playwright": "catalog:test",
+    "lightningcss": "catalog:dev",
     "playwright": "catalog:test",
     "tsdown": "catalog:dev",
     "vite": "catalog:dev",
@@ -52,12 +55,17 @@
       "source": "./src/index.ts",
       "default": "./dist/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./styles.css": {
+      "source": "./src/standalone.css",
+      "default": "./dist/styles.css"
+    }
   },
   "publishConfig": {
     "exports": {
       ".": "./dist/index.js",
-      "./package.json": "./package.json"
+      "./package.json": "./package.json",
+      "./styles.css": "./dist/styles.css"
     }
   }
 }

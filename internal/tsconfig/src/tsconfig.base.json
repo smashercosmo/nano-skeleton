@@ -17,13 +17,10 @@
     "checkJs": true,
 
     /**
-     * All our apps and libraries are build with bundlers (usually Vite is used for apps and TsDown for libraries).
-     * The handle both transpilation, types generation and source maps creation. Because of that we don't need settings
-     * like "declaration", "declarationMap", "emitDeclarationOnly" and "sourcemap" and our TypeScript configs.
-     *
-     * But nothing depends on the node file. Making the node project composite project forces it to generate .d.ts files
-     * which slows down the build and provides no value. So in these cases we should omit all these three flags.
-     * A non-composite project can still safely reference a composite project.
+     * All our apps and libraries are built with bundlers (usually Vite for apps and tsdown for libraries).
+     * They handle transpilation, type generation and source maps. Because of that, we don't need settings
+     * like "declaration", "declarationMap", "emitDeclarationOnly" and "sourceMap" in our TypeScript configs:
+     * TypeScript only checks types here and emits nothing.
      */
     "noEmit": true,
     /**
@@ -34,7 +31,7 @@
     "incremental": true,
 
     /**
-     * "strict" setting is now "true" by default.
+     * The "strict" setting is "true" by default now, so it isn't set here.
      */
     "allowArbitraryExtensions": true,
     "allowUnreachableCode": false,

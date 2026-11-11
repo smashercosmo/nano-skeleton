@@ -38,4 +38,10 @@ const { items } = Astro.props;
     background: var(--surface);
     color: var(--fg);
   }
+
+  /* The section being read, set by the client script */
+  a[aria-current] {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
 </style>

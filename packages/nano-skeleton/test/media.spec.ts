@@ -14,10 +14,9 @@ const IMAGE = `data:image/svg+xml,${encodeURIComponent(
 )}`;
 
 /**
- * WebKit ignores contain-intrinsic-size when it computes the min-content size
- * of an element that skips its contents, so a loading image in a flex row
- * that's too narrow shrinks there. Documented in the element mode docs, with a
- * workaround.
+ * While loading, an image shows an empty SVG without a size or aspect ratio of
+ * its own. WebKit then lets the image shrink below its width in a flex row
+ * that's too narrow. Documented in the element mode docs, with a workaround.
  */
 const IS_WEBKIT = server.browser === "webkit";
 
@@ -67,56 +66,52 @@ describe("media", () => {
     expect(loading.height).toBe(loaded.height);
   });
 
-  it("gives an unsized video the default video size while loading", async () => {
+  it("replaces the picture of a loading image with a transparent one", async () => {
     expect.assertions(2);
-
-    await render(`
-      <nano-skeleton-provider loading>
-        <nano-skeleton><video></video></nano-skeleton>
-      </nano-skeleton-provider>
-    `);
-    const { width, height } = get("video").getBoundingClientRect();
-
-    expect(width).toBe(300);
-    expect(height).toBe(150);
-  });
-
-  it("skips painting the contents of a loading image", async () => {
-    expect.assertions(1);
 
     await render(`
       <nano-skeleton-provider loading>
         <nano-skeleton><img src="${IMAGE}" width="40" height="30" alt="" /></nano-skeleton>
       </nano-skeleton-provider>
     `);
+    const loading = style("img").content;
+    await setLoading(false);
 
-    expect(style("img").contentVisibility).toBe("hidden");
+    expect(loading).toContain("data:image/svg+xml");
+    expect(style("img").content).not.toContain("data:image/svg+xml");
   });
 
+  /**
+   * The wrapper is the placeholder, including its padding. As a flex item here,
+   * it's a block box around the image, not an inline box one line tall.
+   */
   it.each([
     {
       wrapper: "picture",
-      html: `<picture><source srcset="${IMAGE}" /><img src="${IMAGE}" width="120" height="80" alt="" /></picture>`,
+      html: `<picture style="padding: 10px"><source srcset="${IMAGE}" /><img src="${IMAGE}" width="120" height="80" style="display: block" alt="" /></picture>`,
     },
     {
       wrapper: "link",
-      html: `<a href="#"><img src="${IMAGE}" width="120" height="80" alt="" /></a>`,
+      html: `<a href="#" style="padding: 10px"><img src="${IMAGE}" width="120" height="80" style="display: block" alt="" /></a>`,
     },
   ])(
-    "draws the placeholder on an image inside a $wrapper",
+    "draws the placeholder on a $wrapper around an image",
     async ({ html }) => {
       expect.assertions(4);
 
       await render(`
         <nano-skeleton-provider loading>
-          <nano-skeleton>${html}</nano-skeleton>
+          <div style="display: flex">
+            <nano-skeleton>${html}</nano-skeleton>
+          </div>
         </nano-skeleton-provider>
       `);
+      const wrapper = get("nano-skeleton > *").getBoundingClientRect();
 
-      expect(style("img").backgroundImage).toContain("gradient");
-      expect(style("img").opacity).toBe("1");
-      expect(style("img").contentVisibility).toBe("hidden");
-      expect(style("nano-skeleton > *").backgroundImage).toBe("none");
+      expect(style("nano-skeleton > *").backgroundImage).toContain("gradient");
+      expect(style("img").opacity).toBe("0");
+      expect(wrapper.width).toBe(140);
+      expect(wrapper.height).toBe(100);
     },
   );
 });

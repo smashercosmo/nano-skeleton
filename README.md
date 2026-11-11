@@ -25,13 +25,12 @@ a quick start and the API.
 
 This is a pnpm monorepo:
 
-| Path                                                 | Description                                                             |
-| ---------------------------------------------------- | ----------------------------------------------------------------------- |
-| [`packages/nano-skeleton`](./packages/nano-skeleton) | The published `nano-skeleton` package.                                  |
-| [`apps/docs`](./apps/docs)                           | Astro documentation site with live demos, deployed to GitHub Pages.     |
-| [`apps/website`](./apps/website)                     | React test bed for trying the package inside a framework. Not deployed. |
-| [`internal/tsconfig`](./internal/tsconfig)           | Shared TypeScript configs.                                              |
-| [`.github/actions`](./.github/actions)               | Actions used by the release workflow, run from TypeScript sources.      |
+| Path                                                 | Description                                                         |
+| ---------------------------------------------------- | ------------------------------------------------------------------- |
+| [`packages/nano-skeleton`](./packages/nano-skeleton) | The published `nano-skeleton` package.                              |
+| [`apps/docs`](./apps/docs)                           | Astro documentation site with live demos, deployed to GitHub Pages. |
+| [`internal/tsconfig`](./internal/tsconfig)           | Shared TypeScript configs.                                          |
+| [`.github/actions`](./.github/actions)               | Actions used by the release workflow, run from TypeScript sources.  |
 
 ## Development
 
@@ -45,9 +44,6 @@ pnpm install
 # Start the docs site in dev mode
 pnpm --filter docs dev
 
-# Start the React test bed in dev mode
-pnpm --filter website dev
-
 # Build all packages and apps
 pnpm build
 
@@ -59,7 +55,7 @@ pnpm lint
 pnpm format
 ```
 
-Both apps import the package from source in dev mode, so changes in
+The docs site imports the package from source in dev mode, so changes in
 `packages/nano-skeleton/src` show up in the dev server right away.
 
 ### TypeScript

@@ -1,0 +1,44 @@
+---
+/**
+ * GitHub Pages serves /404.html for every URL that doesn't exist. Without
+ * this page, visitors would get GitHub's own error page, with no way back to
+ * the docs.
+ */
+import Layout from "#components/layout.astro";
+import { withBase } from "#root/site.js";
+---
+
+<Layout
+  title="Page not found · nano-skeleton"
+  description="This page doesn't exist."
+>
+  <main class="not-found">
+    <h1>Page not found</h1>
+    <p>
+      There's nothing at this address. The docs are a single page, and the
+      changelog is the only other one.
+    </p>
+    <p>
+      <a href={withBase()}>Go to the docs</a> ·
+      <a href={withBase("changelog/")}>Changelog</a>
+    </p>
+  </main>
+</Layout>
+
+<style>
+  .not-found {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 4rem 1rem;
+  }
+
+  h1 {
+    margin: 0 0 1rem;
+    font-size: clamp(2rem, 6vw, 2.75rem);
+    letter-spacing: -0.035em;
+  }
+
+  p {
+    color: var(--muted);
+  }
+</style>

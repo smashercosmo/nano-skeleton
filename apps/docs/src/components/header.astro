@@ -1,6 +1,12 @@
 ---
 import ThemeSwitcher from "#components/theme-switcher.astro";
-import { NPM_URL, REPO_URL, VERSION, withBase } from "#root/site.js";
+import {
+  LOGO_REVEALED_KEY,
+  NPM_URL,
+  REPO_URL,
+  VERSION,
+  withBase,
+} from "#root/site.js";
 
 const DOCS_URL = withBase();
 const CHANGELOG_URL = withBase("changelog/");
@@ -9,11 +15,47 @@ const { pathname } = Astro.url;
 
 <header class="header">
   <a class="logo" href={DOCS_URL} aria-label="nano-skeleton, home">
-    <span>nano</span><nano-skeleton-provider loading
-      ><nano-skeleton class="logo__skeleton">skeleton</nano-skeleton
-      ></nano-skeleton-provider
+    {
+      /**
+       * The logo's skeleton is decoration: it's "loading" forever. An explicit
+       * aria-busy wins over the one the provider sets, so screen readers
+       * aren't told that the link is still updating
+       */
+    }
+    <span class="logo__text"
+      ><span>nano</span><nano-skeleton-provider loading aria-busy="false"
+        ><nano-skeleton inline="words-bg-per-line" class="logo__word">skeleton</nano-skeleton
+        ></nano-skeleton-provider
+      ></span
+    >
+    {
+      /**
+       * The real text, invisible, in the same grid cell: the logo is as wide
+       * as the revealed word in any font, so the badge doesn't move
+       */
+    }
+    <span class="logo__sizer" aria-hidden="true"
+      >nano<span class="logo__word">skeleton</span></span
     >
   </a>
+  {
+    /**
+     * Once revealed, the logo stays revealed on the next pages too. Runs
+     * before the first paint, so a revealed logo doesn't flash as a skeleton
+     */
+  }
+  <script is:inline data-key={LOGO_REVEALED_KEY}>
+    try {
+      const key = document.currentScript?.dataset.key;
+      if (key && sessionStorage.getItem(key)) {
+        document
+          .querySelector(".logo nano-skeleton-provider")
+          ?.removeAttribute("loading");
+      }
+    } catch {
+      // Storage is unavailable, e.g. blocked: the logo starts as a skeleton
+    }
+  </script>
   <a class="badge" href={CHANGELOG_URL} title="Changelog">v{VERSION}</a>
   <nav class="nav" aria-label="Main">
     <a href={DOCS_URL} aria-current={pathname === DOCS_URL ? "page" : undefined}
@@ -47,18 +89,26 @@ const { pathname } = Astro.url;
     font-weight: 300;
     letter-spacing: -0.03em;
     text-decoration: none;
+    --nano-skeleton-inline-ascent: 0.57;
+    /**
+     * Slightly narrower than the default, so the bars stay within the width
+     * of the real word in common UI fonts
+     */
+    --nano-skeleton-inline-glyph-width: 0.48;
+    display: inline-grid;
   }
 
-  .logo__skeleton {
+  .logo > * {
+    grid-area: 1 / 1;
+  }
+
+  .logo__sizer {
+    visibility: hidden;
+  }
+
+  .logo__word {
     font-weight: 750;
     color: var(--accent);
-  }
-
-  /* Before the element is defined, look like a skeleton already */
-  .logo__skeleton:not(:defined) {
-    border-radius: 0.375rem;
-    background: var(--border);
-    color: transparent;
   }
 
   .nav {

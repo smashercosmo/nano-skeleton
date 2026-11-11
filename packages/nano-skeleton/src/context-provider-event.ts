@@ -1,15 +1,27 @@
+import { SKELETON_CONTEXT } from "#root/constants.js";
+
 /**
- * Announces a provider that connected, e.g. one that was defined after its
- * skeletons, so skeletons without a provider can request the context again.
- * Follows the community Context Protocol (@see
- * https://github.com/webcomponents-cg/community-protocols/blob/main/proposals/context.md)
+ * Announces that a context provider has connected.
+ *
+ * Consumers waiting for a provider use this event to try their context request
+ * again. Existing providers also use it to let consumers find a closer
+ * provider.
+ *
+ * The event only announces the new provider. Consumers switch providers through
+ * their context requests, not through this event.
+ *
+ * Implements the Community Context Protocol:
+ * https://github.com/webcomponents-cg/community-protocols/blob/main/proposals/context.md
  */
 export class ContextProviderEvent extends Event {
-  public readonly context: unknown;
+  /**
+   * Identifies the context this provider offers. Uses `unknown` because
+   * listeners may receive events for contexts they do not handle.
+   */
+  public readonly context: unknown = SKELETON_CONTEXT;
 
-  public constructor(context: unknown) {
-    /** Composed, so it reaches skeletons that listen on the document */
+  public constructor() {
+    // Let the event cross shadow boundaries and bubble up the DOM tree.
     super("context-provider", { bubbles: true, composed: true });
-    this.context = context;
   }
 }
