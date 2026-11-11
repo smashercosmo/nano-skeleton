@@ -1,9 +1,0 @@
-.root {
-  --demo-font-size: inherit;
-
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  /** Set by the font size slider; card text sizes are relative to it */
-  font-size: var(--demo-font-size, 1rem);
-}
