@@ -55,3 +55,7 @@ nano-skeleton@0.9.0:
     - steady-media-sizes
     - steady-skeleton-lifecycle
     - typed-tag-names
+nano-skeleton@1.0.0:
+  dir: packages/nano-skeleton
+  intents:
+    - one-point-zero
