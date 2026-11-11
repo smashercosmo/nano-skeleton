@@ -105,7 +105,9 @@ const toc = sections.map(({ id, label }) => ({ id, label }));
       top: 1rem;
       max-height: calc(100dvh - 2rem);
       overflow-y: auto;
-      padding-top: 2.5rem;
+      /* Room for the focus outlines of the links, which the overflow would clip */
+      margin-inline: -4px;
+      padding: 2.5rem 4px 4px;
     }
 
     .toc-mobile {

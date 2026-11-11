@@ -1,6 +1,7 @@
 import { Skeleton, SkeletonProvider } from "nano-skeleton";
 
 import { requestHighlight } from "#root/scripts/highlight.js";
+import { LOGO_REVEALED_KEY } from "#root/site.js";
 
 SkeletonProvider.define();
 Skeleton.define();
@@ -63,21 +64,78 @@ for (const demo of document.querySelectorAll("[data-demo]")) {
 
 //region ------------- Logo -------------
 
-/** The "skeleton" part of the logo is loading until it's hovered or focused */
+/**
+ * The "skeleton" part of the logo is loading until it's first hovered or
+ * focused. It then stays revealed, on the next pages too: the header reads the
+ * same key before the first paint.
+ */
 const logo = document.querySelector(".logo");
 const logoProvider = logo?.querySelector<SkeletonProvider>(
   "nano-skeleton-provider",
 );
-if (logo && logoProvider) {
-  for (const type of ["pointerenter", "focus"]) {
-    logo.addEventListener(type, () => {
-      logoProvider.loading = false;
-    });
+const logoReveal = new AbortController();
+
+function revealLogo() {
+  if (logoProvider) {
+    logoProvider.loading = false;
   }
-  for (const type of ["pointerleave", "blur"]) {
-    logo.addEventListener(type, () => {
-      logoProvider.loading = true;
-    });
+  logoReveal.abort();
+  try {
+    sessionStorage.setItem(LOGO_REVEALED_KEY, "true");
+  } catch {
+    // Storage is unavailable: the logo is revealed on this page only
+  }
+}
+
+if (logo && logoProvider?.loading === true) {
+  for (const type of ["pointerenter", "focus"]) {
+    logo.addEventListener(type, revealLogo, { signal: logoReveal.signal });
+  }
+}
+
+//endregion
+
+//region ------------- Table of contents -------------
+
+/**
+ * Marks the link of the section being read in both tables of contents (the
+ * sidebar and the mobile one) with aria-current, which also styles it.
+ *
+ * The observed area is a thin band a fifth of the way down the viewport: the
+ * section that crosses it is the one being read. Sections follow each other
+ * without gaps, so exactly one crosses the band at a time.
+ */
+const tocLinks = new Map<string, HTMLAnchorElement[]>();
+for (const link of document.querySelectorAll<HTMLAnchorElement>(".toc a")) {
+  const id = decodeURIComponent(link.hash.slice(1));
+  tocLinks.set(id, [...(tocLinks.get(id) ?? []), link]);
+}
+
+/** Marks the links of one section as current, and unmarks all the others */
+function markCurrent(sectionId: string) {
+  for (const [id, links] of tocLinks) {
+    for (const link of links) {
+      if (id === sectionId) {
+        link.setAttribute("aria-current", "true");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    }
+  }
+}
+
+if (tocLinks.size > 0) {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const current = entries.find((entry) => entry.isIntersecting);
+      if (current) {
+        markCurrent(current.target.id);
+      }
+    },
+    { rootMargin: "-20% 0px -80% 0px" },
+  );
+  for (const section of document.querySelectorAll(".section[id]")) {
+    observer.observe(section);
   }
 }
 
