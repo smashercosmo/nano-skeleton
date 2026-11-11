@@ -55,12 +55,17 @@
       "source": "./src/index.ts",
       "default": "./dist/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./styles.css": {
+      "source": "./src/standalone.css",
+      "default": "./dist/styles.css"
+    }
   },
   "publishConfig": {
     "exports": {
       ".": "./dist/index.js",
-      "./package.json": "./package.json"
+      "./package.json": "./package.json",
+      "./styles.css": "./dist/styles.css"
     }
   }
 }

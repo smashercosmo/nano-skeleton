@@ -1,0 +1,8 @@
+/**
+ * The stylesheet exported as "nano-skeleton/styles.css": the same styles the
+ * elements adopt from script, plus the built-in fonts. Linked in the page's
+ * <head>, it styles server-rendered skeletons before the script runs, so they
+ * look the same from the first paint.
+ */
+@import "./fonts.css";
+@import "./styles.css";

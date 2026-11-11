@@ -28,20 +28,20 @@ for a shimmering placeholder of the same shape.
 ## Features
 
 - **Zero layout shift.** The skeleton is drawn over your real markup, so the
-  loading state has the exact same size as the loaded one. (The optional
-  font-based inline styles only approximate how text wraps.)
+  loading state has the exact same size as the loaded one. (Inline text is
+  drawn with an average glyph width, so it can wrap slightly differently.)
 - **One switch per region.** A `<nano-skeleton-provider>` controls every
   `<nano-skeleton>` inside it, no matter how deeply nested.
 - **Text-aware.** Inline text gets a per-line placeholder that follows line
-  wrapping, including truncated text with an ellipsis.
-- **Media-aware.** `<img>` and `<video>` keep their box while their content is
-  hidden.
+  wrapping.
+- **Media-aware.** An `<img>` keeps its box while its picture is hidden.
 - **Accessible by default.** Loading content is made `inert`, so it can't be
   focused or clicked, the provider is marked `aria-busy`, and the shimmer
   respects `prefers-reduced-motion`. Opt out per skeleton with `interactive`.
 - **Light and dark mode** out of the box via `light-dark()`.
-- **Works everywhere:** plain HTML, any framework, inside Shadow DOM.
-- **No dependencies**, styles included. No CSS file to import.
+- **Works everywhere:** plain HTML, any framework, inside Shadow DOM. Safe to
+  import during server-side rendering.
+- **No dependencies**, styles included.
 
 ## Installation
 
@@ -67,6 +67,14 @@ Skeleton.define();
 Each `define()` does nothing if the element is already registered, so calling
 it more than once (for example from several entry points or during hot reload)
 is safe.
+
+Add the stylesheet to the page, so skeletons that are already in the HTML,
+e.g. rendered on a server, look right from the first paint instead of once the
+script has run:
+
+```js
+import "nano-skeleton/styles.css";
+```
 
 Then use the elements in your markup:
 
@@ -119,11 +127,11 @@ While loading, the provider is exposed to assistive technology as
 The component also manages these attributes itself, which you can use as
 styling hooks:
 
-| Attribute | Set when                                                                              |
-| --------- | ------------------------------------------------------------------------------------- |
-| `loading` | The nearest provider is loading.                                                      |
-| `inline`  | The skeleton directly contains text, or `inline` is set (inline mode).                |
-| `inert`   | The nearest provider is loading and `interactive` isn't set. Blocks focus and clicks. |
+| Attribute | Set when                                                                                 |
+| --------- | ---------------------------------------------------------------------------------------- |
+| `loading` | The nearest provider is loading.                                                         |
+| `inline`  | The skeleton directly contains text (`inline="auto"`), or `inline` is set (inline mode). |
+| `inert`   | The nearest provider is loading and `interactive` isn't set. Blocks focus and clicks.    |
 
 ### Exports
 
