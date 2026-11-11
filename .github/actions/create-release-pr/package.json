@@ -8,7 +8,8 @@
   "dependencies": {
     "@actions/core": "catalog:actions",
     "@actions/exec": "catalog:actions",
-    "@actions/github": "catalog:actions"
+    "@actions/github": "catalog:actions",
+    "zod": "catalog:actions"
   },
   "devDependencies": {
     "@internal/tsconfig": "workspace:*",

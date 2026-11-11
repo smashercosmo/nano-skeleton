@@ -47,7 +47,10 @@ catalogs:
     babel-plugin-react-compiler: 1.0.0
     oxfmt: 0.76.0
     "@tsdown/css": 0.23.4
+    lightningcss: 1.33.0
   test:
+    "@lit/context": 1.1.6
+    "@lit/reactive-element": 2.1.2
     vitest: 5.1.0
     "@vitest/browser-playwright": 5.1.0
     playwright: 1.65.0
