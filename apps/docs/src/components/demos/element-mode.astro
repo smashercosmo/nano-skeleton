@@ -2,7 +2,7 @@
 import DemoFrame from "#components/demo-frame.astro";
 import { withBase } from "#root/site.js";
 
-/** Sources that fail to load, without a request: no 404 noise in the console */
+/** A source that fails to load, without a request: no 404 noise in the console */
 const BROKEN_IMAGE = "data:image/png;base64,broken";
 const BROKEN_VIDEO = "data:video/webm;base64,broken";
 
@@ -49,6 +49,8 @@ const VIDEO_URL =
   </nano-skeleton-provider>
 </DemoFrame>
 
+<h3 id="broken-sources">Broken sources</h3>
+
 <DemoFrame label="Broken sources demo">
   <p class="hint">
     The left column has no skeleton, so the switch only affects the right one.
@@ -83,7 +85,7 @@ const VIDEO_URL =
               width="400"
               height="300"
               alt="Broken image"
-                />
+            />
           </nano-skeleton>
           <nano-skeleton>
             <video
@@ -131,16 +133,6 @@ const VIDEO_URL =
     height: auto;
     aspect-ratio: 4 / 3;
     border-radius: var(--radius);
-  }
-
-  video.media {
-    background: #000;
-  }
-
-  .pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
   }
 
   .boxes {

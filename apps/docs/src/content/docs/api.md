@@ -45,11 +45,11 @@ takes precedence, e.g. to make the provider itself a grid:
 
 <div class="table-wrap">
 
-| Attribute / property | Type         | Description                                                                                                        |
-| -------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `interactive`        | `boolean`    | Keeps the content focusable and clickable while loading.                                                           |
-| `inline`             | `InlineMode` | Forces inline mode, e.g. for text inside a link, and picks how text is drawn. See [Inline styles](#inline-styles). |
-| `loading`            | `boolean`    | Read-only. Whether the nearest provider is loading. Set `loading` on the provider instead.                         |
+| Attribute / property | Type         | Description                                                                                                       |
+| -------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `interactive`        | `boolean`    | Keeps the content focusable and clickable while loading.                                                          |
+| `inline`             | `InlineMode` | Forces inline mode, e.g. for text inside a link, and picks how text is drawn. See [Inline modes](#inline-styles). |
+| `loading`            | `boolean`    | Read-only. Whether the nearest provider is loading. Set `loading` on the provider instead.                        |
 
 </div>
 
@@ -58,13 +58,18 @@ styling hooks:
 
 <div class="table-wrap">
 
-| Attribute | Set when                                                                              |
-| --------- | ------------------------------------------------------------------------------------- |
-| `loading` | The nearest provider is loading.                                                      |
-| `inline`  | The skeleton directly contains text, or `inline` is set (inline mode).                |
-| `inert`   | The nearest provider is loading and `interactive` isn't set. Blocks focus and clicks. |
+| Attribute | Set when                                                                                 |
+| --------- | ---------------------------------------------------------------------------------------- |
+| `loading` | The nearest provider is loading.                                                         |
+| `inline`  | The skeleton directly contains text (`inline="auto"`), or `inline` is set (inline mode). |
+| `inert`   | The nearest provider is loading and `interactive` isn't set. Blocks focus and clicks.    |
 
 </div>
+
+The skeleton keeps `loading` and `inert` in sync with the provider: if
+something else removes or adds them, e.g. a library that morphs the DOM, it
+puts them back. To keep the content usable while loading, set `interactive`
+instead of removing `inert`.
 
 ### Exports
 
@@ -77,4 +82,5 @@ import {
   COMPONENT_NAME, // "nano-skeleton"
   PROVIDER_NAME, // "nano-skeleton-provider"
 } from "nano-skeleton";
+import "nano-skeleton/styles.css"; // the styles and fonts, for the first paint
 ```

@@ -4,22 +4,33 @@
  * provider inside the stage. "Simulate fetch" turns them all on, then each one
  * finishes after its `data-delay` (ms, default 1500, "random" for 500–2500).
  *
+ * The switch sets the providers' state when the page loads, so a demo that
+ * starts out loading sets `loading` here, not on its providers.
+ *
  * Headings inside demos get role="none": they're sample content, so they stay
  * out of the page's heading outline.
  */
 interface Props {
   label: string;
   class?: string;
+  /** Starts out loading */
+  loading?: boolean;
 }
 
-const { label, class: className } = Astro.props;
+const { label, class: className, loading } = Astro.props;
 ---
 
 <section class:list={["demo", className]} aria-label={label} data-demo>
   <div class="demo__bar">
     <label class="demo__switch">
-      <input type="checkbox" switch role="switch" data-loading-toggle />
-      Loading
+      <input
+        type="checkbox"
+        switch
+        role="switch"
+        checked={loading}
+        data-loading-toggle
+      />
+      <span>Loading</span>
     </label>
     <button type="button" class="button" data-simulate>Simulate fetch</button>
     <slot name="controls" />
@@ -40,7 +51,7 @@ const { label, class: className } = Astro.props;
   .demo__bar {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: baseline;
     gap: 0.5rem 1rem;
     padding: 0.5rem 0.75rem;
     border-bottom: 1px solid var(--border);
@@ -50,10 +61,16 @@ const { label, class: className } = Astro.props;
 
   .demo__switch {
     display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
     font-weight: 600;
     cursor: pointer;
+    block-size: 2cap;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .demo__switch > input {
+    margin: 0;
+    align-self: center;
   }
 
   .demo__stage {

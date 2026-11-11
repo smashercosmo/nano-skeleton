@@ -17,6 +17,29 @@ function isInlineMode(value: string): value is InlineMode {
   return INLINE_MODES.includes(value);
 }
 
+function isBlockMode(mode: InlineMode) {
+  return mode === "lines-bg-per-block" || mode === "words-bg-per-block";
+}
+
+/**
+ * Puts the skeleton around the element of its text in the "-bg-per-block"
+ * styles, and inside it in the others
+ */
+function arrange(skeleton: Skeleton, element: HTMLElement, block: boolean) {
+  if ((element.parentElement === skeleton) === block) {
+    return;
+  }
+  if (block) {
+    element.append(...skeleton.childNodes);
+    element.replaceWith(skeleton);
+    skeleton.append(element);
+  } else {
+    skeleton.append(...element.childNodes);
+    skeleton.replaceWith(element);
+    element.append(skeleton);
+  }
+}
+
 /** [base light, base dark, highlight light, highlight dark] */
 const PALETTES: Record<Exclude<Colors, "default">, readonly string[]> = {
   indigo: ["#e0e7ff", "#1e1b4b", "#eef2ff", "#312e81"],
@@ -29,7 +52,7 @@ interface State {
   readonly fontSize: number;
   readonly inlineStyle: InlineMode;
   readonly inlineRadius: number;
-  readonly letterSpacing: number;
+  readonly glyphWidth: number;
   readonly width: number;
   readonly avatarRadius: number;
   readonly linkMode: string;
@@ -55,7 +78,7 @@ function readState(values: ReadonlyMap<string, string>): State {
     fontSize: Number(text("fontSize")),
     inlineStyle: isInlineMode(inlineStyle) ? inlineStyle : DEFAULT_INLINE_MODE,
     inlineRadius: Number(text("inlineRadius")),
-    letterSpacing: Number(text("letterSpacing")),
+    glyphWidth: Number(text("glyphWidth")),
     width: Number(text("width")),
     avatarRadius: Number(text("avatarRadius")),
     linkMode: text("linkMode"),
@@ -66,6 +89,18 @@ function readState(values: ReadonlyMap<string, string>): State {
     bgSize: Number(text("bgSize")),
     colors: isColors(colors) ? colors : "default",
   };
+}
+
+/**
+ * The inline style of the link's skeleton. The "-bg-per-block" styles need a
+ * block around the text, and a link is an inline box, so there the link gets
+ * the matching "-bg-per-line" style instead
+ */
+function linkStyle(mode: InlineMode): InlineMode {
+  if (mode === "lines-bg-per-block") {
+    return "lines-bg-per-line";
+  }
+  return mode === "words-bg-per-block" ? "words-bg-per-line" : mode;
 }
 
 function gradient(colors: Colors) {
@@ -89,7 +124,7 @@ const DEFAULT_ANIMATION = "nano-skeleton-shimmer 2s infinite ease-in-out";
 /** Every custom property the playground can set */
 const CUSTOM_PROPERTIES = [
   "--nano-skeleton-inline-border-radius",
-  "--nano-skeleton-letter-spacing",
+  "--nano-skeleton-inline-glyph-width",
   "--nano-skeleton-animation",
   "--nano-skeleton-background-size",
   "--nano-skeleton-background-image",
@@ -107,8 +142,11 @@ function customProperties(state: Readonly<State>) {
       String(state.inlineRadius),
     ]);
   }
-  if (state.letterSpacing !== 0) {
-    result.push(["--nano-skeleton-letter-spacing", `${state.letterSpacing}em`]);
+  if (state.glyphWidth !== 0.5) {
+    result.push([
+      "--nano-skeleton-inline-glyph-width",
+      String(state.glyphWidth),
+    ]);
   }
   if (animation(state) !== DEFAULT_ANIMATION) {
     result.push(["--nano-skeleton-animation", animation(state)]);
@@ -148,15 +186,26 @@ function html(state: Readonly<State>, loading: boolean) {
     state.inlineStyle === DEFAULT_INLINE_MODE
       ? ""
       : ` inline="${state.inlineStyle}"`;
+  const linkInline = linkStyle(state.inlineStyle);
   const linkAttributes = [
-    state.linkMode === "inline" ? style || " inline" : "",
+    state.linkMode === "inline"
+      ? linkInline === DEFAULT_INLINE_MODE
+        ? " inline"
+        : ` inline="${linkInline}"`
+      : "",
     state.interactive ? " interactive" : "",
   ].join("");
-  return `${provider}
-  <article class="card"${dir}>
-    <nano-skeleton>
-      <img class="avatar" src="/avatar.png" width="64" height="64" alt="" />
-    </nano-skeleton>
+  const texts = isBlockMode(state.inlineStyle)
+    ? `
+    <nano-skeleton${style}><h3>Jane Cooper</h3></nano-skeleton>
+    <nano-skeleton${style}><p>Senior product designer</p></nano-skeleton>
+    <nano-skeleton${style}>
+      <p>
+        Designs calm, accessible interfaces and writes about the small
+        details that make loading states feel fast.
+      </p>
+    </nano-skeleton>`
+    : `
     <h3><nano-skeleton${style}>Jane Cooper</nano-skeleton></h3>
     <p><nano-skeleton${style}>Senior product designer</nano-skeleton></p>
     <p>
@@ -164,7 +213,12 @@ function html(state: Readonly<State>, loading: boolean) {
         Designs calm, accessible interfaces and writes about the small
         details that make loading states feel fast.
       </nano-skeleton>
-    </p>
+    </p>`;
+  return `${provider}
+  <article class="card"${dir}>
+    <nano-skeleton>
+      <img class="avatar" src="/avatar.png" width="64" height="64" alt="" />
+    </nano-skeleton>${texts}
     <nano-skeleton${linkAttributes}>
       <a href="/profile">View profile</a>
     </nano-skeleton>
@@ -179,7 +233,7 @@ function outputs(state: Readonly<State>): Record<string, string> {
   return {
     fontSizeOut: `${state.fontSize}px`,
     inlineRadiusOut: String(state.inlineRadius),
-    letterSpacingOut: `${state.letterSpacing}em`,
+    glyphWidthOut: String(state.glyphWidth),
     widthOut: `${state.width}px`,
     avatarRadiusOut: `${state.avatarRadius}%`,
     durationOut: `${state.duration}s`,
@@ -198,7 +252,14 @@ function initPlayground() {
   const htmlCode = document.querySelector("[data-pg-html]");
   const cssCode = document.querySelector("[data-pg-css]");
   const article = card?.querySelector("article");
-  const texts = [...(card?.querySelectorAll<Skeleton>("[data-pg-text]") ?? [])];
+  /** Each text skeleton with the element of its text, a heading or paragraph */
+  const texts = [
+    ...(card?.querySelectorAll<Skeleton>("[data-pg-text]") ?? []),
+  ].flatMap((skeleton) =>
+    skeleton.parentElement
+      ? [{ skeleton, element: skeleton.parentElement }]
+      : [],
+  );
 
   if (!form || !card || !link || !htmlCode || !cssCode || !article) {
     return;
@@ -226,13 +287,15 @@ function initPlayground() {
 
     article.dir = state.dir;
     /** Removing the attribute lets the skeleton detect the default mode */
-    for (const text of texts) {
-      text.inline =
+    for (const { skeleton, element } of texts) {
+      skeleton.inline =
         state.inlineStyle === DEFAULT_INLINE_MODE
           ? undefined
           : state.inlineStyle;
+      arrange(skeleton, element, isBlockMode(state.inlineStyle));
     }
-    link.inline = state.linkMode === "inline" ? state.inlineStyle : undefined;
+    link.inline =
+      state.linkMode === "inline" ? linkStyle(state.inlineStyle) : undefined;
     link.interactive = state.interactive;
 
     for (const [name, value] of Object.entries(outputs(state))) {

@@ -34,8 +34,13 @@ export function UserCard({ id }: { id: string }) {
 }
 ```
 
-Placeholder text while loading gives the skeleton a realistic size, as it's
-never visible to the user.
+Use placeholder text while the data is loading: it's never shown, but it gives
+the skeleton a realistic size.
+
+The package can be imported on a server, e.g. in Next.js: there, `define()`
+does nothing, and the elements start working once the same code runs in the
+browser. Import `nano-skeleton/styles.css` too, e.g. in the root layout, so
+the server-rendered skeletons look right before that.
 
 The package declares the elements for DOM APIs, so
 `document.querySelector("nano-skeleton")` or a `useRef<Skeleton>()` attached to

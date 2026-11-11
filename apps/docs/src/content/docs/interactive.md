@@ -31,26 +31,16 @@ loading to tell them the region is still updating.
 
 ### Link underlines
 
-By default, a link's underline stays visible while loading. For an interactive
-link this matters: the placeholder can be focused and clicked, so it should
-still look like a link, and color alone isn't enough to tell links apart.
+Text decorations are hidden while loading, except in interactive skeletons:
+there, the underline of a link placed directly inside the skeleton stays
+visible. The placeholder can be focused and clicked, so it should still look
+like a link.
 
-If your styles use the `text-decoration` shorthand on links, e.g.
-`a { text-decoration: underline }`, give it a color too, as the shorthand
-resets the color to `currentcolor`, which Chrome paints with the skeleton's
-transparent text fill:
-
-```css
-a {
-  text-decoration: underline var(--link-color);
-}
-```
-
-If your design calls for hiding the underline, wrap the link's content in an
-extra element:
+If your design calls for hiding the underline, wrap the link in an extra
+element, so it's no longer a direct child of the skeleton:
 
 ```html
 <nano-skeleton inline interactive>
-  <a href="/posts/42"><span>Placeholder post title</span></a>
+  <span><a href="/posts/42">Placeholder post title</a></span>
 </nano-skeleton>
 ```

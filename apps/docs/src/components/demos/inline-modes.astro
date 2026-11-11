@@ -1,0 +1,230 @@
+---
+import DemoFrame from "#components/demo-frame.astro";
+
+const STYLES = [
+  "lines-bg-per-line",
+  "lines-bg-per-block",
+  "words-bg-per-line",
+  "words-bg-per-block",
+] as const;
+
+/** Rendered before the script runs, with the sliders' initial values */
+const INITIAL_CSS = `.card {
+  font-size: 16px;
+  --nano-skeleton-inline-glyph-width: 0.5;
+  --nano-skeleton-inline-ascent: 0.71;
+  --nano-skeleton-inline-descent: 0;
+  --nano-skeleton-inline-border-radius: 1;
+  --nano-skeleton-inline-baseline-shift: 0;
+}`;
+---
+
+<DemoFrame label="Inline styles demo">
+  <form class="controls" data-inline-styles-form>
+    <label>
+      Font size <output name="fontSizeOut">16px</output>
+      <input type="range" name="fontSize" min="12" max="48" value="16" />
+    </label>
+    <label>
+      Glyph width <output name="glyphWidthOut">0.5</output>
+      <input
+        type="range"
+        name="glyphWidth"
+        min="0.06"
+        max="1.8"
+        step="0.01"
+        value="0.5"
+      />
+    </label>
+    <label>
+      Ascent <output name="ascentOut">0.71</output>
+      <input
+        type="range"
+        name="ascent"
+        min="0"
+        max="1.5"
+        step="0.01"
+        value="0.71"
+      />
+    </label>
+    <label>
+      Descent <output name="descentOut">0</output>
+      <input
+        type="range"
+        name="descent"
+        min="0"
+        max="1"
+        step="0.01"
+        value="0"
+      />
+    </label>
+    <label>
+      Border radius <output name="borderRadiusOut">1</output>
+      <input
+        type="range"
+        name="borderRadius"
+        min="0"
+        max="1"
+        step="0.05"
+        value="1"
+      />
+    </label>
+    <label>
+      Baseline shift <output name="baselineShiftOut">0</output>
+      <input
+        type="range"
+        name="baselineShift"
+        min="-0.3"
+        max="0.3"
+        step="0.01"
+        value="0"
+      />
+    </label>
+    <label class="check">
+      <input type="checkbox" name="textBox" />
+      Trim bars
+    </label>
+    <button type="reset" class="button">Reset</button>
+  </form>
+  <p class="hint">
+    The border radius doesn't apply to <code>lines-bg-per-block</code>, whose
+    line ends can't be rounded. The glyph width, ascent, descent and baseline
+    shift don't apply to <code>lines-bg-per-line</code>, which draws the
+    page's own font. "Trim bars" adds{" "}
+    <code>text-box: cap alphabetic</code> to <code>lines-bg-per-line</code> demo's
+    paragraph and heading, which makes its bars thinner.
+  </p>
+
+  <nano-skeleton-provider class="grid" data-inline-styles-preview>
+    {
+      STYLES.map((style) => (
+        <div class="card">
+          <code class="caption">inline="{style}"</code>
+          {
+            /**
+             * The "-bg-per-block" styles wrap the heading or paragraph, the
+             * others go inside it
+             */
+            style.endsWith("-bg-per-block") ? (
+              <>
+                <nano-skeleton inline={style}>
+                  <h3 role="none">Lorem ipsum dolor</h3>
+                </nano-skeleton>
+                <nano-skeleton inline={style}>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua.
+                  </p>
+                </nano-skeleton>
+              </>
+            ) : (
+              <>
+                <h3 role="none">
+                  <nano-skeleton inline={style}>Lorem ipsum dolor</nano-skeleton>
+                </h3>
+                <p>
+                  <nano-skeleton inline={style}>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua.
+                  </nano-skeleton>
+                </p>
+              </>
+            )
+          }
+        </div>
+      ))
+    }
+  </nano-skeleton-provider>
+
+  <div class="code">
+    <pre><code class="language-css" data-inline-styles-css>{INITIAL_CSS}</code></pre>
+  </div>
+</DemoFrame>
+
+<script>
+  import { initInlineStyles } from "#root/scripts/inline-styles.js";
+
+  initInlineStyles();
+</script>
+
+<style>
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
+    align-items: end;
+    gap: 0.75rem 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  .controls > label {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.15rem;
+  }
+
+  .controls input[type="range"] {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .controls > .check {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .controls > .button {
+    justify-self: start;
+  }
+
+  output {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+
+  .hint {
+    margin: 0.75rem 0 1rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .caption {
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  h3 {
+    margin: 0.5rem 0 0.25rem;
+    font-size: 1.25em;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9em;
+  }
+
+  /* The wrapper with the copy button is added by the client script */
+  .code :global(.code-block) {
+    margin: 1rem 0 0;
+  }
+
+  .code pre {
+    margin: 0;
+    font-size: 0.8rem;
+  }
+</style>
