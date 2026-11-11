@@ -2,12 +2,20 @@ import { getInput, setOutput, info, setFailed } from "@actions/core";
 import { exec, getExecOutput } from "@actions/exec";
 import { getOctokit, context } from "@actions/github";
 import process from "node:process";
+import { z } from "zod";
 
-type ReleasePlan = {
-  name: string;
-  currentVersion: string;
-  newVersion: string;
-}[];
+/**
+ * What `pnpm version -r --json` prints. Checked, not assumed: if a pnpm update
+ * changes the format, the action fails here with a clear message, instead of
+ * opening a PR titled "release undefined@undefined"
+ */
+const ReleasePlanSchema = z.array(
+  z.object({
+    name: z.string(),
+    currentVersion: z.string(),
+    newVersion: z.string(),
+  }),
+);
 
 try {
   const token = getInput("token", { required: true });
@@ -40,7 +48,15 @@ try {
     "-r",
     "--json",
   ]);
-  const plan: ReleasePlan = JSON.parse(planOutput);
+  const parsedPlan = ReleasePlanSchema.safeParse(JSON.parse(planOutput));
+
+  if (!parsedPlan.success) {
+    throw new Error(
+      `\`pnpm version -r --json\` printed an unexpected release plan:\n${z.prettifyError(parsedPlan.error)}`,
+    );
+  }
+
+  const plan = parsedPlan.data;
 
   if (plan.length === 0) {
     throw new Error("`pnpm version -r` produced an empty release plan");
@@ -64,7 +80,7 @@ try {
     .join(", ")}`;
 
   const body = [
-    "Merging this PR publishes the following packages to npm and creates their GitHub releases:",
+    "Merging this PR stages the following packages on npm and drafts their GitHub releases. Nothing is public until the staged versions are approved (`pnpm stage approve`) and the drafts are published:",
     "",
     ...plan.map(
       ({ name, currentVersion, newVersion }) =>

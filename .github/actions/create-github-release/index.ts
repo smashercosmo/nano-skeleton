@@ -133,6 +133,44 @@ async function getExistingTags(
     : getExistingTags(request, page + 1, collected);
 }
 
+/**
+ * The commit that set the package's current version: the last one that added or
+ * removed the `"version": "<version>"` line of its package.json.
+ *
+ * That's the commit to tag. The commit the workflow runs on can be a later one,
+ * e.g. when a failed release is retried by hand after more commits have landed
+ * on main. Falls back to the workflow's commit when the history has no answer,
+ * e.g. in a shallow clone.
+ */
+async function getVersionCommit(
+  packagePath: string,
+  version: string,
+  fallback: string,
+) {
+  const { stdout, exitCode } = await getExecOutput(
+    "git",
+    [
+      "log",
+      "-1",
+      "--format=%H",
+      `-S"version": "${version}"`,
+      "--",
+      path.join(packagePath, "package.json"),
+    ],
+    { silent: true, ignoreReturnCode: true },
+  );
+  const commit = stdout.trim();
+
+  if (exitCode !== 0 || commit === "") {
+    warning(
+      `Couldn't find the commit that set version ${version}, tagging ${fallback} instead`,
+    );
+    return fallback;
+  }
+
+  return commit;
+}
+
 try {
   const token = getInput("token", { required: true });
   const draft = getBooleanInput("draft");
@@ -194,6 +232,8 @@ try {
         notes = `Release ${name}@${version}`;
       }
 
+      const commit = await getVersionCommit(packagePath, version, sha);
+
       /**
        * Creates the tag as well, pointing to the released commit. For a draft,
        * the tag is created once the draft is published
@@ -204,7 +244,7 @@ try {
         schema: ReleaseSchema,
         body: {
           tag_name: tag,
-          target_commitish: sha,
+          target_commitish: commit,
           name: tag,
           body: notes,
           draft,

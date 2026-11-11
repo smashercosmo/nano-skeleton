@@ -21,9 +21,11 @@ on:
 
 permissions: {}
 
-concurrency:
-  group: release
-  cancel-in-progress: false
+# No concurrency group for the whole workflow, on purpose. Runs in a group wait
+# for each other, and GitHub cancels a waiting run when a newer one arrives. A
+# quick push right after merging the release PR would cancel the run that was
+# about to publish, before it even decided what to do. So every push gets its
+# own `plan`, and only the jobs that must not overlap share a group
 
 jobs:
   plan:
@@ -36,15 +38,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # Lets the plan step compare HEAD with its parent
-          fetch-depth: 2
+          # Full history, so the plan step can compare HEAD with the commit
+          # main pointed to before the push
+          fetch-depth: 0
 
+      # A push can contain several commits, e.g. a rebase-merge, and the
+      # ledger may have changed in any of them. So the whole push is compared
+      # (BEFORE..HEAD), not just the last commit. BEFORE is missing from the
+      # history after a force-push and is all zeros for a new branch: then the
+      # last commit is compared, as a fallback
       - id: plan
         name: Decide what to do
+        env:
+          BEFORE: ${{ github.event.before }}
         run: |
+          if ! git cat-file -e "${BEFORE:-missing}^{commit}" 2>/dev/null; then
+            BEFORE=HEAD^
+          fi
+
           if find .changeset -maxdepth 1 -name '*.md' ! -name README.md 2>/dev/null | grep -q .; then
             echo "action=pr" >> "$GITHUB_OUTPUT"
-          elif [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || ! git diff --quiet HEAD^ HEAD -- .changeset/ledger.yaml; then
+          elif [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || ! git diff --quiet "$BEFORE" HEAD -- .changeset/ledger.yaml; then
             echo "action=stage" >> "$GITHUB_OUTPUT"
           else
             echo "action=none" >> "$GITHUB_OUTPUT"
@@ -59,6 +73,11 @@ jobs:
     permissions:
       contents: read
     environment: release
+    # One at a time, as they force-push the same branch. A waiting run that
+    # gets cancelled by a newer one is fine here: the newer one opens the PR
+    concurrency:
+      group: release-pr
+      cancel-in-progress: false
     env:
       # Environment variables are only exposed through the `vars` context
       RELEASE_BRANCH_NAME: ${{ vars.RELEASE_BRANCH_NAME }}
@@ -66,6 +85,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # The tip of the branch, not the commit that triggered the run: runs
+          # can start out of order, and the PR must be built from the latest
+          # main, or an older run would overwrite a newer PR
+          ref: ${{ github.ref }}
 
       # Installs pnpm from "packageManager" and Node from "devEngines.runtime"
       # in package.json, then runs `pnpm install --frozen-lockfile`
@@ -89,8 +112,19 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           app-slug: ${{ steps.app-token.outputs.app-slug }}
 
-  publish:
+  # The same lint, type and browser checks as CI, on the exact commit that is
+  # about to be published. A separate job with read access only: it runs
+  # dependency code (build tools, browsers), which must not share a job with
+  # the right to publish to npm
+  verify:
     needs: plan
+    if: needs.plan.outputs.action == 'stage'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: [plan, verify]
     if: needs.plan.outputs.action == 'stage'
     runs-on: ubuntu-latest
     permissions:
@@ -98,6 +132,10 @@ jobs:
       # npm trusted publishing (OIDC); pnpm adds provenance automatically
       id-token: write
     environment: release
+    # Two releases never publish at the same time
+    concurrency:
+      group: release-publish
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -129,6 +167,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Full history: the action looks up the commit that set each
+          # package's version, to tag that one
+          fetch-depth: 0
 
       # Installs the action's dependencies
       - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
