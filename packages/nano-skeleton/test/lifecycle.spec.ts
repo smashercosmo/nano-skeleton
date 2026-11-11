@@ -98,8 +98,113 @@ describe("lifecycle", () => {
     getSkeleton().replaceChildren(document.createElement("img"));
     await settle();
 
-    expect(detected).toBe("");
+    expect(detected).toBe("auto");
     expect(getSkeleton().getAttribute("inline")).toBeNull();
+  });
+
+  /**
+   * A copy carries the attribute but not the original's private state, so the
+   * "auto" value is what tells it that the attribute was detected
+   */
+  it.each([
+    { how: "cloneNode", copy: (el: Element) => el.cloneNode(true) },
+    {
+      how: "innerHTML",
+      copy: (el: Element) => {
+        const template = document.createElement("template");
+        template.innerHTML = el.outerHTML;
+        return template.content;
+      },
+    },
+  ])(
+    "switches a $how copy of detected text back to element mode too",
+    async ({ copy }) => {
+      expect.assertions(2);
+
+      await render(`
+        <nano-skeleton-provider><nano-skeleton id="original">Loading…</nano-skeleton></nano-skeleton-provider>
+        <div id="outside"></div>
+      `);
+      get("#outside").append(copy(getSkeleton("#original")));
+      await settle();
+      const skeleton = getSkeleton("#outside nano-skeleton");
+      const copied = skeleton.getAttribute("inline");
+      skeleton.replaceChildren(document.createElement("img"));
+      await settle();
+
+      expect(copied).toBe("auto");
+      expect(skeleton.getAttribute("inline")).toBeNull();
+    },
+  );
+
+  it("draws detected text in the default style", async () => {
+    expect.assertions(2);
+
+    await render(`
+      <nano-skeleton-provider loading><p><nano-skeleton>Text</nano-skeleton></p></nano-skeleton-provider>
+    `);
+
+    expect(getSkeleton().inline).toBe("lines-bg-per-line");
+    expect(style("nano-skeleton").backgroundImage).toContain("gradient");
+  });
+
+  /**
+   * DOM-morphing libraries remove attributes that aren't in the HTML they got
+   * from the server, which the skeleton's own attributes never are
+   */
+  it("puts back its attributes when something else removes them", async () => {
+    expect.assertions(4);
+
+    await render(`
+      <nano-skeleton-provider loading><p><nano-skeleton>Text</nano-skeleton></p></nano-skeleton-provider>
+    `);
+    const skeleton = getSkeleton();
+    skeleton.removeAttribute("loading");
+    skeleton.removeAttribute("inert");
+    skeleton.removeAttribute("inline");
+
+    expect(skeleton.getAttribute("loading")).toBe("");
+    expect(skeleton.getAttribute("inert")).toBe("");
+    expect(skeleton.getAttribute("inline")).toBe("auto");
+    expect(skeleton.loading).toBe(true);
+  });
+
+  it("removes its attributes again once loading ends after they were put back", async () => {
+    expect.assertions(2);
+
+    await render(`
+      <nano-skeleton-provider loading><nano-skeleton><button>Follow</button></nano-skeleton></nano-skeleton-provider>
+    `);
+    getSkeleton().removeAttribute("inert");
+    getSkeleton().removeAttribute("loading");
+    await setLoading(false);
+
+    expect(getSkeleton().getAttribute("loading")).toBeNull();
+    expect(getSkeleton().getAttribute("inert")).toBeNull();
+  });
+
+  it("removes a loading attribute that something else added", async () => {
+    expect.assertions(2);
+
+    await render(`
+      <nano-skeleton-provider><nano-skeleton><button>Follow</button></nano-skeleton></nano-skeleton-provider>
+    `);
+    getSkeleton().setAttribute("loading", "");
+
+    expect(getSkeleton().getAttribute("loading")).toBeNull();
+    expect(getSkeleton().loading).toBe(false);
+  });
+
+  it("doesn't put back inert on an interactive skeleton", async () => {
+    expect.assertions(1);
+
+    await render(`
+      <nano-skeleton-provider loading><nano-skeleton interactive><button>Follow</button></nano-skeleton></nano-skeleton-provider>
+    `);
+    getSkeleton().setAttribute("inert", "");
+    getSkeleton().removeAttribute("inert");
+
+    expect(getSkeleton().getAttribute("inert")).toBeNull();
   });
 
   it.each([
@@ -153,6 +258,50 @@ describe("lifecycle", () => {
     await setLoading(false);
 
     expect(getSkeleton().getAttribute("inert")).toBe("");
+  });
+
+  /** A copy carries the original's attributes, but not its private state */
+  it("doesn't leave a copy of a loading skeleton inert", async () => {
+    expect.assertions(3);
+
+    await render(`
+      <nano-skeleton-provider loading><nano-skeleton id="original"><button>Follow</button></nano-skeleton></nano-skeleton-provider>
+      <div id="outside"></div>
+    `);
+    const copy = getSkeleton("#original").cloneNode(true);
+    get("#outside").append(copy);
+    await settle();
+    const skeleton = getSkeleton("#outside nano-skeleton");
+
+    expect(skeleton.getAttribute("loading")).toBeNull();
+    expect(skeleton.getAttribute("inert")).toBeNull();
+    expect(getSkeleton("#original").getAttribute("inert")).toBe("");
+  });
+
+  it("keeps an inert attribute set by the author after a move while loading", async () => {
+    expect.assertions(1);
+
+    await render(`
+      <nano-skeleton-provider id="a" loading><nano-skeleton inert><button>Follow</button></nano-skeleton></nano-skeleton-provider>
+      <nano-skeleton-provider id="b" loading></nano-skeleton-provider>
+    `);
+    getProvider("#b").append(getSkeleton());
+    getProvider("#b").loading = false;
+
+    expect(getSkeleton().getAttribute("inert")).toBe("");
+  });
+
+  it("isn't loading once removed from a loading provider", async () => {
+    expect.assertions(2);
+
+    await render(`
+      <nano-skeleton-provider loading><nano-skeleton><button>Follow</button></nano-skeleton></nano-skeleton-provider>
+    `);
+    const skeleton = getSkeleton();
+    skeleton.remove();
+
+    expect(skeleton.getAttribute("loading")).toBeNull();
+    expect(skeleton.getAttribute("inert")).toBeNull();
   });
 
   it("works after being moved to the document of an iframe", async () => {

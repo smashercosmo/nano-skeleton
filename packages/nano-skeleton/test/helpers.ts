@@ -1,3 +1,5 @@
+import { page } from "vitest/browser";
+
 import type { Skeleton, SkeletonProvider } from "#root/index.js";
 
 import {
@@ -116,6 +118,38 @@ function boxDecorationBreak(selector: string) {
   );
 }
 
+/**
+ * The top and bottom of what's painted in an element, in viewport pixels: the
+ * first and last rows of its screenshot with a pixel darker than mid-grey.
+ * Measures bars drawn in black on a white background.
+ */
+async function ink(selector: string) {
+  const element = get(selector);
+  const base64 = await page.screenshot({ element, save: false });
+  const image = new Image();
+  image.src = `data:image/png;base64,${base64}`;
+  await image.decode();
+  const canvas = document.createElement("canvas");
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const context = canvas.getContext("2d") ?? fail("canvas");
+  context.drawImage(image, 0, 0);
+  const { data } = context.getImageData(0, 0, image.width, image.height);
+  let top = -1;
+  let bottom = 0;
+  for (let index = 0; index < data.length; index += 4) {
+    if ((data[index] ?? 255) < 128) {
+      const row = Math.floor(index / 4 / image.width);
+      if (top === -1) {
+        top = row;
+      }
+      bottom = row + 1;
+    }
+  }
+  const offset = element.getBoundingClientRect().top;
+  return { top: offset + top, bottom: offset + bottom };
+}
+
 export {
   settle,
   defineElements,
@@ -129,4 +163,5 @@ export {
   style,
   animatedProperties,
   boxDecorationBreak,
+  ink,
 };

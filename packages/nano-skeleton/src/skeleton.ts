@@ -1,14 +1,15 @@
-import type { Unsubscribe } from "#root/types.js";
-
 import { adoptStyles } from "#root/adopt-styles.js";
-import { COMPONENT_NAME, SKELETON_CONTEXT } from "#root/constants.js";
-import { ContextProviderEvent } from "#root/context-provider-event.js";
-import { ContextRequestEvent } from "#root/context-request-event.js";
+import { COMPONENT_NAME } from "#root/constants.js";
+import { ContextConsumer } from "#root/context-consumer.js";
 import { registerFont } from "#root/fonts.js";
+import { hasDom } from "#root/html-element.js";
 
 /**
- * How inline text is drawn while loading: as one bar per line or one pill per
- * word, with a gradient per line or one gradient for all lines
+ * How inline text is drawn while it's loading. Each value combines two choices:
+ *
+ * - "lines" or "words": one solid bar per line, or one pill per word.
+ * - "bg-per-line" or "bg-per-block": the shimmering gradient stretches across
+ *   each line separately, or across the whole block of text.
  */
 const INLINE_MODES = [
   "lines-bg-per-line",
@@ -19,54 +20,68 @@ const INLINE_MODES = [
 
 type InlineMode = (typeof INLINE_MODES)[number];
 
+/** The value of an `inline` attribute that was detected automatically. */
+const AUTO_INLINE = "auto";
+
 function isInlineMode(value: unknown): value is InlineMode {
   const modes: string[] = [...INLINE_MODES];
   return typeof value === "string" && modes.includes(value);
 }
 
-/** Checks the node type, as `instanceof Text` fails for nodes of an iframe */
+/**
+ * Safely checks if a DOM node is a non-empty text node. We use `nodeType`
+ * because `instanceof Text` can break if the node comes from an iframe.
+ */
 function isNonEmptyText(node: Node) {
   return (
     node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim() !== ""
   );
 }
 
-class Skeleton extends HTMLElement {
-  public static readonly observedAttributes = ["interactive", "inline"];
+class Skeleton extends ContextConsumer {
+  /**
+   * `loading` and `inert` are managed by the skeleton itself. They are observed
+   * so they can be put back when something else changes them, see
+   * `attributeChangedCallback`.
+   */
+  public static readonly observedAttributes = [
+    "interactive",
+    "inline",
+    "loading",
+    "inert",
+  ];
+  /** Safe to call more than once, and on a server, where it does nothing. */
   public static define() {
-    if (!customElements.get(COMPONENT_NAME)) {
+    if (hasDom() && !customElements.get(COMPONENT_NAME)) {
       customElements.define(COMPONENT_NAME, this);
     }
   }
 
-  #unsubscribe?: Unsubscribe | undefined;
+  /**
+   * The loading state the nearest provider last sent us. This is the source of
+   * truth: the `loading` attribute only mirrors it, for the styles.
+   */
+  #loading = false;
 
-  /** `inline` was added by auto-detection, not by the author */
-  #autoInline = false;
-
-  /** `inert` was added by the skeleton, not by the author */
+  /** True if the `inert` attribute was added automatically by this component. */
   #ownInert = false;
 
-  /** The skeleton is changing its own `inline` attribute */
-  #settingInline = false;
+  /** True between `connectedCallback` and `disconnectedCallback`. */
+  #connected = false;
+
+  /** True while we are changing our own `loading` and `inert` attributes. */
+  #rendering = false;
 
   readonly #observer = new MutationObserver(() => {
     this.#update();
   });
 
-  /** A provider connected: try again if no provider answered before */
-  readonly #onContextProvider = (event: Event) => {
-    if (
-      event instanceof ContextProviderEvent &&
-      event.context === SKELETON_CONTEXT
-    ) {
-      this.#requestContext();
-    }
-  };
-
-  /** Set by the nearest provider, see `<nano-skeleton-provider loading>` */
+  /**
+   * Indicates if the component is in a loading state. Controlled by the nearest
+   * `<nano-skeleton-provider>`.
+   */
   public get loading() {
-    return this.hasAttribute("loading");
+    return this.#loading;
   }
 
   public get interactive() {
@@ -78,8 +93,9 @@ class Skeleton extends HTMLElement {
   }
 
   /**
-   * The inline mode, if the skeleton is in inline mode. A bare `inline`
-   * attribute, or any unknown value, means `"lines-bg-per-line"`.
+   * The current visual mode for inline text. If the attribute is just `inline`
+   * with no value, was detected automatically (`inline="auto"`), or has an
+   * unknown value, it is the default, `"lines-bg-per-line"`.
    */
   public get inline(): InlineMode | undefined {
     const value = this.getAttribute("inline");
@@ -106,21 +122,28 @@ class Skeleton extends HTMLElement {
       return;
     }
     if (name === "inline") {
-      if (!this.#settingInline) {
-        this.#autoInline = false;
-      }
       this.#registerFont();
       this.#update();
-    } else {
-      this.#render(this.loading);
+    } else if (name === "interactive") {
+      this.#render(this.#loading);
+    } else if (this.#connected && !this.#rendering) {
+      /**
+       * Something else changed `loading` or `inert`, which are ours to manage.
+       * Libraries that update the page by morphing the DOM (idiomorph,
+       * morphdom, Turbo, htmx) remove attributes that aren't in the HTML they
+       * got from the server, and ours never are. Rendering again puts them
+       * back. To keep the content usable while loading, set `interactive`
+       * instead of removing `inert`.
+       *
+       * Skipped until the skeleton is connected: a copy of a loading skeleton
+       * arrives with these attributes, and `connectedCallback` needs to see
+       * them to tell that it is a copy.
+       */
+      this.#render(this.#loading);
     }
   }
 
-  /**
-   * Synchronous, so a skeleton that is moved or removed right after being added
-   * never subscribes while it's disconnected
-   */
-  public connectedCallback() {
+  public override connectedCallback() {
     this.#upgradeProperty("inline");
     this.#upgradeProperty("interactive");
 
@@ -128,8 +151,25 @@ class Skeleton extends HTMLElement {
 
     this.#registerFont();
     this.#update();
+
+    /**
+     * A skeleton that already has `loading` when it connects is a copy of a
+     * loading skeleton, e.g. made with `cloneNode()` or `innerHTML`. The copy's
+     * `inert` attribute was added by the original, so it's ours to remove.
+     * Without this, the copy would stay inert forever.
+     */
+    if (
+      this.hasAttribute("loading") &&
+      !this.interactive &&
+      this.hasAttribute("inert")
+    ) {
+      this.#ownInert = true;
+    }
+    this.#connected = true;
     this.#render(false);
-    this.#requestContext();
+
+    /** Ask the nearest provider for its context data. */
+    super.connectedCallback();
 
     this.#observer.observe(this, {
       childList: true,
@@ -138,61 +178,26 @@ class Skeleton extends HTMLElement {
     });
   }
 
-  public disconnectedCallback() {
-    this.#unsubscribe?.();
-    this.#unsubscribe = undefined;
-    this.ownerDocument.removeEventListener(
-      "context-provider",
-      this.#onContextProvider,
-    );
+  public override disconnectedCallback() {
+    super.disconnectedCallback();
     this.#observer.disconnect();
+    this.#connected = false;
+    /**
+     * A removed skeleton has no provider, so it isn't loading. It also keeps
+     * the check for copies in `connectedCallback` honest: an element that we
+     * removed `loading` from here can't be mistaken for a copy later.
+     */
+    this.#render(false);
+  }
+
+  protected override contextChangedCallback(loading: boolean) {
+    this.#render(loading);
   }
 
   /**
-   * Subscribes to the nearest provider. Without one, waits for a provider to
-   * connect, e.g. one that is defined later.
-   */
-  #requestContext() {
-    this.#unsubscribe?.();
-    this.#unsubscribe = undefined;
-
-    this.dispatchEvent(
-      new ContextRequestEvent(
-        SKELETON_CONTEXT,
-        (loading, unsubscribe) => {
-          if (unsubscribe) {
-            this.#unsubscribe = unsubscribe;
-          }
-          this.#render(loading);
-        },
-        true,
-      ),
-    );
-
-    if (this.#isSubscribed()) {
-      this.ownerDocument.removeEventListener(
-        "context-provider",
-        this.#onContextProvider,
-      );
-    } else {
-      this.ownerDocument.addEventListener(
-        "context-provider",
-        this.#onContextProvider,
-      );
-    }
-  }
-
-  /**
-   * A method, as TypeScript can't tell that the provider's callback sets
-   * `#unsubscribe` during `dispatchEvent()`
-   */
-  #isSubscribed() {
-    return this.#unsubscribe !== undefined;
-  }
-
-  /**
-   * A property set before the element was defined is an own property that
-   * shadows the accessor. Re-sets it through the accessor.
+   * Fixes properties that were assigned before the custom element was defined,
+   * ensuring they use our getter/setter methods instead of becoming static
+   * properties.
    */
   #upgradeProperty(name: "inline" | "interactive") {
     if (Object.hasOwn(this, name)) {
@@ -203,32 +208,34 @@ class Skeleton extends HTMLElement {
   }
 
   /**
-   * Auto-detects inline mode: the skeleton is inline if it directly contains
-   * text. The attribute is added without a value, so the default mode applies,
-   * and removed again once the text is gone. An `inline` attribute set by the
-   * author is never removed.
+   * Switches to inline mode automatically when the skeleton directly contains
+   * text, and back when the text is gone.
+   *
+   * Automatic detection sets `inline="auto"`. The value is how we recognize our
+   * own attribute later: we only remove `inline` when it says "auto", so an
+   * `inline` attribute set by the author is never touched. Because the mark is
+   * in the attribute itself, and not in a private field, it survives copying: a
+   * copy made with `cloneNode()` or `innerHTML` still knows that its `inline`
+   * was detected automatically.
+   *
+   * The styles treat "auto" like any value that isn't a style name: it means
+   * the default style.
    */
   #update() {
     const hasText = [...this.childNodes].some((node) => isNonEmptyText(node));
     if (hasText && !this.hasAttribute("inline")) {
-      this.#setInline(true);
-      this.#autoInline = true;
-    } else if (!hasText && this.#autoInline) {
-      this.#setInline(false);
-      this.#autoInline = false;
+      this.setAttribute("inline", AUTO_INLINE);
+    } else if (!hasText && this.getAttribute("inline") === AUTO_INLINE) {
+      this.removeAttribute("inline");
     }
   }
 
-  #setInline(force: boolean) {
-    this.#settingInline = true;
-    try {
-      this.toggleAttribute("inline", force);
-    } finally {
-      this.#settingInline = false;
-    }
-  }
-
-  /** Inline modes other than the default draw the text with a built-in font */
+  /**
+   * Registers the built-in font that the current inline style draws its bars
+   * with: its glyphs are solid bars instead of letters. The default
+   * `"lines-bg-per-line"` style doesn't need one, as it draws the bars behind
+   * the page's own font.
+   */
   #registerFont() {
     const { inline } = this;
     if (inline === "lines-bg-per-block") {
@@ -241,16 +248,27 @@ class Skeleton extends HTMLElement {
     }
   }
 
-  /** Only removes an `inert` attribute that the skeleton added itself */
+  /**
+   * Remembers the loading state and mirrors it in the attributes: `loading` for
+   * the styles, and `inert` while loading unless the skeleton is interactive.
+   * An `inert` attribute is only removed if we added it.
+   */
   #render(loading: boolean) {
-    this.toggleAttribute("loading", loading);
-    const inert = loading && !this.interactive;
-    if (inert && !this.hasAttribute("inert")) {
-      this.toggleAttribute("inert", true);
-      this.#ownInert = true;
-    } else if (!inert && this.#ownInert) {
-      this.toggleAttribute("inert", false);
-      this.#ownInert = false;
+    this.#loading = loading;
+    /** Tells `attributeChangedCallback` that these changes are our own */
+    this.#rendering = true;
+    try {
+      this.toggleAttribute("loading", loading);
+      const inert = loading && !this.interactive;
+      if (inert && !this.hasAttribute("inert")) {
+        this.toggleAttribute("inert", true);
+        this.#ownInert = true;
+      } else if (!inert && this.#ownInert) {
+        this.toggleAttribute("inert", false);
+        this.#ownInert = false;
+      }
+    } finally {
+      this.#rendering = false;
     }
   }
 }

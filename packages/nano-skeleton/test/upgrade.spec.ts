@@ -2,10 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { defineElements, settle } from "./helpers.js";
 
-/**
- * Its own file, so the elements aren't defined yet: every test file runs in a
- * fresh iframe with its own custom element registry
- */
 describe("upgrade", () => {
   it("applies properties set before the elements were defined", async () => {
     expect.assertions(3);
