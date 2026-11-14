@@ -9,6 +9,9 @@ on:
 
 permissions: {}
 
+# Every job has a timeout, here and in the other workflows: the default is six
+# hours, which is how long a hung browser test would keep a runner busy
+
 # Pull requests: one run per branch, a new push cancels the old run. Everything
 # else gets a group of its own (the run id), so runs never wait for each other:
 # GitHub cancels a waiting run when a newer one arrives, and a cancelled check
@@ -23,9 +26,15 @@ jobs:
   # `pnpm change --bump none` when the change needs no release. A required
   # status check of the main branch ruleset, like `check`. Skipped on pushes and
   # in the release workflow, and a skipped job counts as a passed check
+  #
+  # Also skipped for Dependabot's pull requests: they update the actions the
+  # workflows use, which never needs a release, and Dependabot can't add an
+  # intent. The author of a pull request can't be faked, unlike `github.actor`,
+  # which is whoever pushed last
   changeset:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -58,6 +67,7 @@ jobs:
 
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     env:
@@ -89,9 +99,27 @@ jobs:
       - name: Check formatting
         run: pnpm exec oxfmt --check
 
-      # The browser tests run in Chromium, WebKit and Firefox
+      # The browser tests run in Chromium, WebKit and Firefox. The browsers are
+      # cached per Playwright version, so they're only downloaded after an
+      # update. Their system packages aren't part of the cache and are installed
+      # on every run
+      - id: playwright
+        name: Get Playwright version
+        run: echo "version=$(pnpm --filter nano-skeleton exec playwright --version | sed 's/^Version //')" >> "$GITHUB_OUTPUT"
+
+      - id: browsers-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
       - name: Install browsers
+        if: steps.browsers-cache.outputs.cache-hit != 'true'
         run: pnpm --filter nano-skeleton exec playwright install --with-deps chromium webkit firefox
+
+      - name: Install the system packages of the browsers
+        if: steps.browsers-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter nano-skeleton exec playwright install-deps chromium webkit firefox
 
       - name: Test
         run: pnpm --filter nano-skeleton test
