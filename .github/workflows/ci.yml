@@ -38,32 +38,17 @@ jobs:
     permissions:
       contents: read
     steps:
-      # The merge commit of the pull request and its parents: HEAD^1 is the tip
-      # of the base branch, so HEAD^1..HEAD is what the pull request changes
+      # The merge commit of the pull request and its parents, which the action
+      # compares to find what the pull request changes
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 2
 
+      # The release PR passes without an intent: it applies them instead, and
+      # it's the only pull request that changes .changeset/ledger.yaml
       - name: Require a change intent
-        run: |
-          # The release PR applies the intents instead of adding one. It's the
-          # only pull request that changes the ledger, which is also how the
-          # release workflow recognizes it
-          if ! git diff --quiet HEAD^1 HEAD -- .changeset/ledger.yaml; then
-            echo "Release PR, no change intent needed"
-            exit 0
-          fi
-
-          added=$(git diff --name-only --diff-filter=A HEAD^1 HEAD -- '.changeset/*.md' ':!.changeset/README.md')
-
-          if [ -z "$added" ]; then
-            echo "::error::This pull request doesn't add a change intent. Run \`pnpm change\` and commit the file it creates, or \`pnpm change --bump none\` if the change needs no release"
-            exit 1
-          fi
-
-          echo "Change intents added:"
-          echo "$added"
+        uses: smashercosmo/actions/require-change-intent@4787f9e3bbfff2d6a37291adb031a71024afd467 # v0.2.0
 
   check:
     runs-on: ubuntu-latest
@@ -97,7 +82,7 @@ jobs:
         run: pnpm lint
 
       - name: Check formatting
-        run: pnpm exec oxfmt --check
+        run: pnpm oxfmt --check
 
       # The browser tests run in Chromium, WebKit and Firefox. The browsers are
       # cached per Playwright version, so they're only downloaded after an

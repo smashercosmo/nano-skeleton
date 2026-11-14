@@ -30,7 +30,6 @@ This is a pnpm monorepo:
 | [`packages/nano-skeleton`](./packages/nano-skeleton) | The published `nano-skeleton` package.                              |
 | [`apps/docs`](./apps/docs)                           | Astro documentation site with live demos, deployed to GitHub Pages. |
 | [`internal/tsconfig`](./internal/tsconfig)           | Shared TypeScript configs.                                          |
-| [`.github/actions`](./.github/actions)               | Actions used by the release workflow, run from TypeScript sources.  |
 
 ## Development
 
