@@ -26,8 +26,13 @@ jobs:
   # `pnpm change --bump none` when the change needs no release. A required
   # status check of the main branch ruleset, like `check`. Skipped on pushes and
   # in the release workflow, and a skipped job counts as a passed check
+  #
+  # Also skipped for Dependabot's pull requests: they update the actions the
+  # workflows use, which never needs a release, and Dependabot can't add an
+  # intent. The author of a pull request can't be faked, unlike `github.actor`,
+  # which is whoever pushed last
   changeset:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
