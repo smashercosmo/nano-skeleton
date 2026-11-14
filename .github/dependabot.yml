@@ -8,9 +8,13 @@ updates:
     schedule:
       interval: weekly
     # A release has to be out for a week before it's proposed, so one that
-    # turns out to be broken or malicious is likely to be pulled first
+    # turns out to be broken or malicious is likely to be pulled first. Except
+    # for the actions from my own repositories, which are proposed at the next
+    # weekly run after their release
     cooldown:
       default-days: 7
+      exclude:
+        - "smashercosmo/*"
     groups:
       actions:
         patterns: ["*"]

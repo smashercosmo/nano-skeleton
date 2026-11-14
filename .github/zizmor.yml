@@ -1,8 +1,0 @@
-rules:
-  # zizmor wants `$/…` instead of `./…` for the workflows of this repository,
-  # so that they don't depend on what's checked out. The release workflow calls
-  # CI with `./`, on purpose: CI has to check the commit that is about to be
-  # published, which is the one checked out
-  self-repository:
-    ignore:
-      - release.yml

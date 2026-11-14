@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "astro preview",
-    "lint:types": "astro sync && tsc -b"
+    "lint:types": "ASTRO_TELEMETRY_DISABLED=1 astro sync && tsc -b"
   },
   "imports": {
     "#root/*": "./src/*",

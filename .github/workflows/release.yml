@@ -1,21 +1,16 @@
 name: Release
 
-# Every push to main does one of the following:
-# - pending change intents in .changeset/ → apply them with `pnpm version -r`
-#   and open (or update) a release PR with the bumped versions and changelogs.
-#   Intents that decline a release (`pnpm change --bump none`) don't open one:
-#   they stay in .changeset/ until the next release PR removes them
-# - the release PR was just merged (.changeset/ledger.yaml changed) → stage
-#   every package whose version isn't on npm yet and create a draft GitHub
-#   release for it from its CHANGELOG.md section. Approve the staged versions
-#   with `pnpm stage approve` (2FA), then publish the drafts, which creates
-#   the tags
-# - otherwise → nothing
-# Running it manually (workflow_dispatch) without pending intents always takes
-# the staging path, e.g. to retry a failed release
+# The reusable release workflow of smashercosmo/actions. Every push to main
+# either opens (or updates) the release PR from the pending change intents, or,
+# right after the release PR was merged, runs CI on the commit, stages the
+# packages on npm and drafts their GitHub releases. Approve the staged versions
+# with `pnpm stage approve` (2FA), then publish the drafts, which creates the
+# tags. Running it manually (workflow_dispatch) without pending intents always
+# takes the release path, e.g. to retry a failed release
 #
-# Every job gets only the access it needs, so dependency code running during
-# install or build never shares a job with both npm and GitHub write access
+# The npm trusted publisher of nano-skeleton names this file and the `release`
+# environment, which has the GitHub App's private key. The client ID is a
+# repository variable, as this job can't have an environment
 on:
   push:
     branches: [main]
@@ -23,168 +18,19 @@ on:
 
 permissions: {}
 
-# No concurrency group for the whole workflow, on purpose. Runs in a group wait
-# for each other, and GitHub cancels a waiting run when a newer one arrives. A
-# quick push right after merging the release PR would cancel the run that was
-# about to publish, before it even decided what to do. So every push gets its
-# own `plan`, and only the jobs that must not overlap share a group
-
 jobs:
-  plan:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    outputs:
-      action: ${{ steps.plan.outputs.action }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          # Full history, so the plan step can compare HEAD with the commit
-          # main pointed to before the push
-          fetch-depth: 0
-
-      # A push can contain several commits, e.g. a rebase-merge, and the
-      # ledger may have changed in any of them. So the whole push is compared
-      # (BEFORE..HEAD), not just the last commit. BEFORE is missing from the
-      # history after a force-push and is all zeros for a new branch: then the
-      # last commit is compared, as a fallback
-      - id: plan
-        name: Decide what to do
-        env:
-          BEFORE: ${{ github.event.before }}
-        run: |
-          if ! git cat-file -e "${BEFORE:-missing}^{commit}" 2>/dev/null; then
-            BEFORE=HEAD^
-          fi
-
-          if find .changeset -maxdepth 1 -name '*.md' ! -name README.md 2>/dev/null | grep -q .; then
-            echo "action=pr" >> "$GITHUB_OUTPUT"
-          elif [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || ! git diff --quiet "$BEFORE" HEAD -- .changeset/ledger.yaml; then
-            echo "action=stage" >> "$GITHUB_OUTPUT"
-          else
-            echo "action=none" >> "$GITHUB_OUTPUT"
-          fi
-
-  # Pushes the release branch and opens the PR with the GitHub App token, so
-  # the PR triggers other workflows (GITHUB_TOKEN-created ones don't)
-  release-pr:
-    needs: plan
-    if: needs.plan.outputs.action == 'pr'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    environment: release
-    # One at a time, as they force-push the same branch. A waiting run that
-    # gets cancelled by a newer one is fine here: the newer one opens the PR
-    concurrency:
-      group: release-pr
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          # The tip of the branch, not the commit that triggered the run: runs
-          # can start out of order, and the PR must be built from the latest
-          # main, or an older run would overwrite a newer PR
-          ref: ${{ github.ref }}
-
-      # Installs pnpm from "packageManager" and Node from "devEngines.runtime"
-      # in package.json, then runs `pnpm install --frozen-lockfile`. The release
-      # PR action needs both: it runs `pnpm version -r` and `pnpm format`
-      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
-        with:
-          cache: true
-          require-lockfile: true
-
-      - id: app-token
-        uses: smashercosmo/actions/create-token@4787f9e3bbfff2d6a37291adb031a71024afd467 # v0.2.0
-        with:
-          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-
-      # Force-pushes the `release` branch, the action's default
-      - name: Open or update release PR
-        uses: smashercosmo/actions/create-release-pr@4787f9e3bbfff2d6a37291adb031a71024afd467 # v0.2.0
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          app-slug: ${{ steps.app-token.outputs.app-slug }}
-          # The changed files are appended, so it formats only those
-          format-command: pnpm format
-
-  # The same lint, type and browser checks as CI, on the exact commit that is
-  # about to be published. A separate job with read access only: it runs
-  # dependency code (build tools, browsers), which must not share a job with
-  # the right to publish to npm
-  verify:
-    needs: plan
-    if: needs.plan.outputs.action == 'stage'
-    permissions:
-      contents: read
-    uses: ./.github/workflows/ci.yml
-
-  publish:
-    needs: [plan, verify]
-    if: needs.plan.outputs.action == 'stage'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      # npm trusted publishing (OIDC); pnpm adds provenance automatically
-      id-token: write
-    environment: release
-    # Two releases never publish at the same time
-    concurrency:
-      group: release-publish
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
-        with:
-          cache: true
-          require-lockfile: true
-
-      # Only the publishable packages, so no app build tooling runs in a job
-      # that can publish to npm
-      - name: Build packages
-        run: pnpm --filter "./packages/*" build
-
-      # Uploads to npm's staging area instead of the live registry. Skips
-      # private packages and versions already on the registry
-      - name: Stage packages on npm
-        run: pnpm stage publish -r
-
-  # Waits for publish, so drafts are only created for staged versions. Draft
-  # releases don't need to trigger other workflows, so GITHUB_TOKEN is enough
   release:
-    needs: publish
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # The most the jobs of the workflow can get. Each of them asks only for
+    # what it needs: drafting the releases needs `contents: write`, staging on
+    # npm (OIDC) `id-token: write`
     permissions:
       contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          # Full history: the action looks up the commit that set each
-          # package's version, to tag that one
-          fetch-depth: 0
-
-      # The action lists the workspace packages with `pnpm ls -r`
-      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
-        with:
-          cache: true
-          require-lockfile: true
-
-      - name: Create draft GitHub releases
-        uses: smashercosmo/actions/create-github-release@4787f9e3bbfff2d6a37291adb031a71024afd467 # v0.2.0
-        with:
-          token: ${{ github.token }}
-          draft: true
+      id-token: write
+    uses: smashercosmo/actions/.github/workflows/release.yml@d283dd6d6b3f5849dfbfea72da2a138dfefc326c # v0.3.0
+    with:
+      app-client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+      npm: true
+      cache: true
+      playwright-browsers: chromium webkit firefox
+    secrets:
+      app-private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
