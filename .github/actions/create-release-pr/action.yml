@@ -1,5 +1,5 @@
 name: Create Release PR
-description: GitHub Action for applying pending change intents with `pnpm version -r` and opening (or updating) a release PR with the result. The PR is opened from the branch named in the `RELEASE_BRANCH_NAME` env variable, which is force-pushed on every run
+description: GitHub Action for applying pending change intents with `pnpm version -r` and opening (or updating) a release PR with the result. The PR is opened from the branch named in the `RELEASE_BRANCH_NAME` env variable, which is force-pushed on every run. Does nothing when the pending intents only decline a release (`--bump none`)
 
 inputs:
   token:

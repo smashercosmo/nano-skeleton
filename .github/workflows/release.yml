@@ -2,7 +2,9 @@ name: Release
 
 # Every push to main does one of the following:
 # - pending change intents in .changeset/ → apply them with `pnpm version -r`
-#   and open (or update) a release PR with the bumped versions and changelogs
+#   and open (or update) a release PR with the bumped versions and changelogs.
+#   Intents that decline a release (`pnpm change --bump none`) don't open one:
+#   they stay in .changeset/ until the next release PR removes them
 # - the release PR was just merged (.changeset/ledger.yaml changed) → stage
 #   every package whose version isn't on npm yet and create a draft GitHub
 #   release for it from its CHANGELOG.md section. Approve the staged versions
