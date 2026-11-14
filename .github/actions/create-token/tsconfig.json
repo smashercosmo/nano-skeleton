@@ -1,7 +1,0 @@
-{
-  "extends": "@internal/tsconfig/node",
-  "include": ["*.ts"],
-  "compilerOptions": {
-    "tsBuildInfoFile": "node_modules/tsconfig.tsbuildinfo"
-  }
-}

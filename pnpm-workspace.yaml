@@ -2,7 +2,6 @@ packages:
   - apps/*
   - packages/*
   - internal/*
-  - .github/actions/*
 
 hoist: false
 saveExact: true
@@ -24,12 +23,6 @@ tasks:
     dependsOn: ["^build"]
 
 catalogs:
-  actions:
-    "@actions/core": 3.0.1
-    "@actions/exec": 3.0.0
-    "@actions/github": 9.1.1
-    "@octokit/auth-app": 8.3.1
-    zod: 4.6.7
   ui:
     microlighter: 2.2.0
     react: 19.3.1

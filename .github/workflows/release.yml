@@ -82,9 +82,6 @@ jobs:
     concurrency:
       group: release-pr
       cancel-in-progress: false
-    env:
-      # Environment variables are only exposed through the `vars` context
-      RELEASE_BRANCH_NAME: ${{ vars.RELEASE_BRANCH_NAME }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -95,26 +92,29 @@ jobs:
           ref: ${{ github.ref }}
 
       # Installs pnpm from "packageManager" and Node from "devEngines.runtime"
-      # in package.json, then runs `pnpm install --frozen-lockfile`
+      # in package.json, then runs `pnpm install --frozen-lockfile`. The release
+      # PR action needs both: it runs `pnpm version -r` and `pnpm format`
       - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
         with:
           cache: true
           require-lockfile: true
 
-      # Runs after install, which installs the action's dependencies
       - id: app-token
-        uses: ./.github/actions/create-token
+        uses: smashercosmo/actions/create-token@4787f9e3bbfff2d6a37291adb031a71024afd467 # v0.2.0
         with:
           client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
 
+      # Force-pushes the `release` branch, the action's default
       - name: Open or update release PR
-        uses: ./.github/actions/create-release-pr
+        uses: smashercosmo/actions/create-release-pr@4787f9e3bbfff2d6a37291adb031a71024afd467 # v0.2.0
         with:
           token: ${{ steps.app-token.outputs.token }}
           app-slug: ${{ steps.app-token.outputs.app-slug }}
+          # The changed files are appended, so it formats only those
+          format-command: pnpm format
 
   # The same lint, type and browser checks as CI, on the exact commit that is
   # about to be published. A separate job with read access only: it runs
@@ -177,14 +177,14 @@ jobs:
           # package's version, to tag that one
           fetch-depth: 0
 
-      # Installs the action's dependencies
+      # The action lists the workspace packages with `pnpm ls -r`
       - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
         with:
           cache: true
           require-lockfile: true
 
       - name: Create draft GitHub releases
-        uses: ./.github/actions/create-github-release
+        uses: smashercosmo/actions/create-github-release@4787f9e3bbfff2d6a37291adb031a71024afd467 # v0.2.0
         with:
           token: ${{ github.token }}
           draft: true
