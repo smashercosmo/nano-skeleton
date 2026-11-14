@@ -39,10 +39,9 @@ jobs:
         with:
           require-lockfile: true
 
-      # Builds nano-skeleton first, then the docs site that depends on it
+      # Builds nano-skeleton first, then the docs site that depends on it.
+      # The build script of the docs turns off Astro's telemetry
       - run: pnpm --filter docs... build
-        env:
-          ASTRO_TELEMETRY_DISABLED: 1
 
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 

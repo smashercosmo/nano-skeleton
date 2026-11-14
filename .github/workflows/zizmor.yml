@@ -29,7 +29,7 @@ jobs:
 
       # Prints the findings to the log and fails on any, instead of uploading
       # them to the repository's code scanning alerts, which wouldn't fail the
-      # job. Configured in .github/zizmor.yml
+      # job
       - uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
         with:
           advanced-security: false

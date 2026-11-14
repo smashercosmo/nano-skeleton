@@ -1,110 +1,23 @@
 name: CI
 
+# The reusable CI workflow of smashercosmo/actions: requires a change intent
+# in every pull request, then runs `pnpm build`, `pnpm lint`,
+# `pnpm format --check` and `pnpm test`. Its jobs report as `ci / changeset`
+# and `ci / check`, the required status checks of the main branch ruleset. It
+# sets the concurrency group itself, so there's none here
 on:
   pull_request:
   push:
     branches: [main]
-  # Lets the release workflow run the same checks before it publishes
-  workflow_call:
 
 permissions: {}
 
-# Every job has a timeout, here and in the other workflows: the default is six
-# hours, which is how long a hung browser test would keep a runner busy
-
-# Pull requests: one run per branch, a new push cancels the old run. Everything
-# else gets a group of its own (the run id), so runs never wait for each other:
-# GitHub cancels a waiting run when a newer one arrives, and a cancelled check
-# would silently skip a release. `github.workflow` is the calling workflow's
-# name when this one is called from the release workflow
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 jobs:
-  # Every pull request has to add a change intent: `pnpm change`, or
-  # `pnpm change --bump none` when the change needs no release. A required
-  # status check of the main branch ruleset, like `check`. Skipped on pushes and
-  # in the release workflow, and a skipped job counts as a passed check
-  #
-  # Also skipped for Dependabot's pull requests: they update the actions the
-  # workflows use, which never needs a release, and Dependabot can't add an
-  # intent. The author of a pull request can't be faked, unlike `github.actor`,
-  # which is whoever pushed last
-  changeset:
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+  ci:
     permissions:
       contents: read
-    steps:
-      # The merge commit of the pull request and its parents, which the action
-      # compares to find what the pull request changes
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 2
-
-      # The release PR passes without an intent: it applies them instead, and
-      # it's the only pull request that changes .changeset/ledger.yaml
-      - name: Require a change intent
-        uses: smashercosmo/actions/require-change-intent@4787f9e3bbfff2d6a37291adb031a71024afd467 # v0.2.0
-
-  check:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    env:
-      ASTRO_TELEMETRY_DISABLED: 1
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      # Installs pnpm from "packageManager" and Node from "devEngines.runtime"
-      # in package.json, then runs `pnpm install --frozen-lockfile`
-      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
-        with:
-          cache: true
-          require-lockfile: true
-
-      # Fails on a change intent pnpm can't read, e.g. an unknown package or
-      # bump type, which would otherwise only fail the release workflow on main
-      - name: Validate change intents
-        run: pnpm change status
-
-      # Before type-checking: the apps get nano-skeleton's types from its dist
-      - name: Build
-        run: pnpm build
-
-      - name: Lint and type-check
-        run: pnpm lint
-
-      - name: Check formatting
-        run: pnpm oxfmt --check
-
-      # The browser tests run in Chromium, WebKit and Firefox. The browsers are
-      # cached per Playwright version, so they're only downloaded after an
-      # update. Their system packages aren't part of the cache and are installed
-      # on every run
-      - id: playwright
-        name: Get Playwright version
-        run: echo "version=$(pnpm --filter nano-skeleton exec playwright --version | sed 's/^Version //')" >> "$GITHUB_OUTPUT"
-
-      - id: browsers-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-
-      - name: Install browsers
-        if: steps.browsers-cache.outputs.cache-hit != 'true'
-        run: pnpm --filter nano-skeleton exec playwright install --with-deps chromium webkit firefox
-
-      - name: Install the system packages of the browsers
-        if: steps.browsers-cache.outputs.cache-hit == 'true'
-        run: pnpm --filter nano-skeleton exec playwright install-deps chromium webkit firefox
-
-      - name: Test
-        run: pnpm --filter nano-skeleton test
+    uses: smashercosmo/actions/.github/workflows/ci.yml@d283dd6d6b3f5849dfbfea72da2a138dfefc326c # v0.3.0
+    with:
+      cache: true
+      # The browser tests of nano-skeleton run in all three
+      playwright-browsers: chromium webkit firefox
