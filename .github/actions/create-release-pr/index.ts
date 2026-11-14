@@ -17,7 +17,7 @@ const ReleasePlanSchema = z.array(
   }),
 );
 
-try {
+async function run() {
   const token = getInput("token", { required: true });
   const appSlug = getInput("app-slug", { required: true });
   const base = getInput("base", { required: true });
@@ -58,8 +58,14 @@ try {
 
   const plan = parsedPlan.data;
 
+  /**
+   * Every pending intent declines a release (`pnpm change --bump none`), so
+   * there's nothing to release. The intent files stay on the base branch until
+   * the next release PR removes them
+   */
   if (plan.length === 0) {
-    throw new Error("`pnpm version -r` produced an empty release plan");
+    info("The pending change intents don't release anything, no PR needed");
+    return;
   }
 
   // Format only the files pnpm touched
@@ -141,6 +147,10 @@ try {
     info(`Opened release PR ${created.html_url}`);
     setOutput("pr-number", created.number);
   }
+}
+
+try {
+  await run();
 } catch (error) {
   setFailed(error instanceof Error ? error.message : String(error));
 }
