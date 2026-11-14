@@ -32,10 +32,11 @@ jobs:
           persist-credentials: false
 
       # Installs pnpm from "packageManager" and Node from "devEngines.runtime"
-      # in package.json, then runs `pnpm install --frozen-lockfile`
+      # in package.json, then runs `pnpm install --frozen-lockfile`. Without the
+      # cache the other workflows use: what is built here gets published, and a
+      # cache is one more way for something foreign to get into it
       - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
         with:
-          cache: true
           require-lockfile: true
 
       # Builds nano-skeleton first, then the docs site that depends on it

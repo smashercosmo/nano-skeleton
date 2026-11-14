@@ -1,0 +1,35 @@
+name: Lint workflows
+
+# Checks the workflows, the actions and the Dependabot config with zizmor: too
+# broad permissions, unpinned actions, injection through `${{ }}` in scripts,
+# actions with known vulnerabilities and the like. Runs for every pull request,
+# not only for those that change .github/, as an action can become vulnerable
+# without changing here
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: zizmor-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  zizmor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Prints the findings to the log and fails on any, instead of uploading
+      # them to the repository's code scanning alerts, which wouldn't fail the
+      # job. Configured in .github/zizmor.yml
+      - uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          advanced-security: false

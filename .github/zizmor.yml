@@ -1,0 +1,8 @@
+rules:
+  # zizmor wants `$/…` instead of `./…` for the actions and the workflow of this
+  # repository, so that they don't depend on what's checked out. The actions in
+  # .github/actions do depend on it, on purpose: they run from the checkout,
+  # where `pnpm install` has put their dependencies
+  self-repository:
+    ignore:
+      - release.yml
