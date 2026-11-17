@@ -58,6 +58,14 @@ const image = new URL(withBase("og-image.png"), Astro.site);
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body data-syntax-theme="github">
+    {
+      /**
+       * The header and the sidebar's table of contents come before the
+       * content, so keyboard users can jump past them. Every page's <main>
+       * has id="main"
+       */
+    }
+    <a class="skip-link" href="#main">Skip to main content</a>
     <Header />
     <slot />
     <footer class="footer">MIT © Vladislav Shkodin</footer>

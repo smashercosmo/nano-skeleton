@@ -1,10 +1,5 @@
 name: CI
 
-# The reusable CI workflow of smashercosmo/actions: requires a change intent
-# in every pull request, then runs `pnpm build`, `pnpm lint`,
-# `pnpm format --check` and `pnpm test`. Its jobs report as `ci / changeset`
-# and `ci / check`, the required status checks of the main branch ruleset. It
-# sets the concurrency group itself, so there's none here
 on:
   pull_request:
   push:
@@ -19,5 +14,4 @@ jobs:
     uses: smashercosmo/actions/.github/workflows/ci.yml@d283dd6d6b3f5849dfbfea72da2a138dfefc326c # v0.3.0
     with:
       cache: true
-      # The browser tests of nano-skeleton run in all three
       playwright-browsers: chromium webkit firefox

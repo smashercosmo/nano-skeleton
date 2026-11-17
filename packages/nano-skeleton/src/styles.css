@@ -27,7 +27,13 @@
 nano-skeleton {
   &:is(
     [loading],
-    :where(:not(:defined):is(nano-skeleton-provider[loading] *):not(nano-skeleton-provider[loading] nano-skeleton-provider:not([loading]) *))
+    :where(
+      :not(:defined):is(nano-skeleton-provider[loading] *):not(
+          nano-skeleton-provider[loading]
+            nano-skeleton-provider:not([loading])
+            *
+        )
+    )
   ) {
     &:is([inline], :where(:not(:defined, :has(> *)))) {
       /**
@@ -35,7 +41,11 @@ nano-skeleton {
        * set to "lines-bg-per-line", or contains an unknown value.
        * Each line is rendered as a separate box with its own gradient.
        */
-      &:not([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
+      &:not(
+        [inline="lines-bg-per-block"],
+        [inline="words-bg-per-line"],
+        [inline="words-bg-per-block"]
+      ) {
         -webkit-box-decoration-break: clone;
         box-decoration-break: clone;
         text-decoration-skip-ink: none;
@@ -49,7 +59,9 @@ nano-skeleton {
          * half the line height, or 0.75em for tight line heights, where the
          * content area is taller than the line.
          */
-        border-radius: calc(var(--nano-skeleton-inline-border-radius, 1) * max(0.5lh, 0.75em));
+        border-radius: calc(
+          var(--nano-skeleton-inline-border-radius, 1) * max(0.5lh, 0.75em)
+        );
 
         /**
          * A focused link or button inside a rounded interactive skeleton gets
@@ -106,7 +118,11 @@ nano-skeleton {
        *  down if negative, in em, without moving the line or its baseline.
        *  The axis takes thousandths of an em.
        */
-      &:is([inline="lines-bg-per-block"], [inline="words-bg-per-line"], [inline="words-bg-per-block"]) {
+      &:is(
+        [inline="lines-bg-per-block"],
+        [inline="words-bg-per-line"],
+        [inline="words-bg-per-block"]
+      ) {
         font-variation-settings:
           "wdth" calc(var(--nano-skeleton-inline-glyph-width, 0.5) * 200),
           "ASCN" calc(var(--nano-skeleton-inline-ascent, 0.71) * 1000),
@@ -244,7 +260,10 @@ nano-skeleton {
     }
 
     /** The placeholders: inline text, or the child in the other cases */
-    &:is([inline], :where(:not(:defined, :has(> *)))):not([inline="lines-bg-per-block"], [inline="words-bg-per-block"]),
+    &:is([inline], :where(:not(:defined, :has(> *)))):not(
+        [inline="lines-bg-per-block"],
+        [inline="words-bg-per-block"]
+      ),
     &:not([inline]):where(:defined, :has(> *)) > *,
     &:is([inline="lines-bg-per-block"], [inline="words-bg-per-block"]) > * {
       background-size: var(--nano-skeleton-background-size, 300%) !important;
@@ -288,7 +307,10 @@ nano-skeleton {
       }
 
       @media not (prefers-reduced-motion: reduce) {
-        animation: var(--nano-skeleton-animation, nano-skeleton-shimmer 2s infinite ease-in-out) !important;
+        animation: var(
+          --nano-skeleton-animation,
+          nano-skeleton-shimmer 2s infinite ease-in-out
+        ) !important;
       }
     }
 
@@ -357,7 +379,8 @@ nano-skeleton {
     /** The shimmer animation follows the reading direction */
     &:is([inline], :where(:not(:defined, :has(> *)))):dir(rtl),
     &:not([inline]):where(:defined, :has(> *)) > :dir(rtl),
-    &:is([inline="lines-bg-per-block"], [inline="words-bg-per-block"]) > :dir(rtl) {
+    &:is([inline="lines-bg-per-block"], [inline="words-bg-per-block"])
+      > :dir(rtl) {
       --nano-skeleton-shimmer-from: 0%;
       --nano-skeleton-shimmer-to: 100%;
     }
@@ -375,7 +398,10 @@ nano-skeleton {
 
 :where(
   nano-skeleton:not([inline]):where(:defined, :has(> *)),
-  nano-skeleton:is([inline="lines-bg-per-block"], [inline="words-bg-per-block"]),
+  nano-skeleton:is(
+    [inline="lines-bg-per-block"],
+    [inline="words-bg-per-block"]
+  ),
   nano-skeleton-provider
 ) {
   display: contents;

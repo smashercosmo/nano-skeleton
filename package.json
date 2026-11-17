@@ -14,6 +14,7 @@
     "update:deps": "pnpm up -r --latest --interactive"
   },
   "devDependencies": {
+    "@smashercosmo/configs": "catalog:dev",
     "@typescript/native": "npm:typescript@7.0.2",
     "eslint-plugin-regexp": "catalog:lint",
     "oxfmt": "catalog:dev",

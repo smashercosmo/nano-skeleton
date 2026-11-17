@@ -95,6 +95,12 @@ const { pathname } = Astro.url;
        * of the real word in common UI fonts
        */
     --nano-skeleton-inline-glyph-width: 0.48;
+    /**
+     * Decoration on every page, so it shimmers twice and then stays still:
+     * moving content that lasts over 5 seconds would need a pause control.
+     * The animation ends where its static state is, so it doesn't jump
+     */
+    --nano-skeleton-animation: nano-skeleton-shimmer 2s ease-in-out 2;
     display: inline-grid;
   }
 

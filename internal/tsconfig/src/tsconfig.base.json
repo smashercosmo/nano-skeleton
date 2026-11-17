@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
-    /**
-     * "preserve" assumes,
-     * that "moduleResolution" is "bundler"
-     */
+    /** "preserve" assumes, that "moduleResolution" is "bundler". */
     "module": "preserve",
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -17,10 +14,10 @@
     "checkJs": true,
 
     /**
-     * All our apps and libraries are built with bundlers (usually Vite for apps and tsdown for libraries).
+     * All our apps and libraries are built with bundlers (usually Vite for apps and TSDown for libraries).
      * They handle transpilation, type generation and source maps. Because of that, we don't need settings
      * like "declaration", "declarationMap", "emitDeclarationOnly" and "sourceMap" in our TypeScript configs:
-     * TypeScript only checks types here and emits nothing.
+     * TypeScript is basically used as a typecheck (with the exception of "composite" projects).
      */
     "noEmit": true,
     /**
@@ -29,10 +26,9 @@
      * file and overwrite each other's.
      */
     "incremental": true,
+    /** "tsBuildInfoFile": "node_modules/tsconfig.tsbuildinfo". */
 
-    /**
-     * The "strict" setting is "true" by default now, so it isn't set here.
-     */
+    /** The "strict" setting is "true" by default now, so it isn't set here. */
     "allowArbitraryExtensions": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

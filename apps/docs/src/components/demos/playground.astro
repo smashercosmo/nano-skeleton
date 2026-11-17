@@ -6,11 +6,20 @@ import { withBase } from "#root/site.js";
 <DemoFrame label="Playground" class="playground">
   <div class="pg">
     <form class="pg__controls" data-pg-form>
+      {
+        /**
+         * Each slider's label has `for`: an <output> is labelable too, so
+         * without it the label would name the output, which comes first, and
+         * the slider would have no name. The outputs are aria-hidden, so they
+         * aren't part of the name either: the slider tells screen readers its
+         * value itself
+         */
+      }
       <fieldset>
         <legend>Text</legend>
-        <label>
-          Font size <output name="fontSizeOut">16px</output>
-          <input type="range" name="fontSize" min="12" max="32" value="16" />
+        <label for="pg-fontSize">
+          Font size <output name="fontSizeOut" aria-hidden="true">16px</output>
+          <input type="range" id="pg-fontSize" name="fontSize" min="12" max="32" value="16" />
         </label>
         <label>
           Inline style
@@ -21,33 +30,33 @@ import { withBase } from "#root/site.js";
             <option value="words-bg-per-block">words-bg-per-block</option>
           </select>
         </label>
-        <label>
-          Inline border radius <output name="inlineRadiusOut">1</output>
+        <label for="pg-inlineRadius">
+          Inline border radius <output name="inlineRadiusOut" aria-hidden="true">1</output>
           <input
             type="range"
-            name="inlineRadius"
+            id="pg-inlineRadius" name="inlineRadius"
             min="0"
             max="1"
             step="0.05"
             value="1"
           />
         </label>
-        <label>
-          Glyph width <output name="glyphWidthOut">0.5</output>
+        <label for="pg-glyphWidth">
+          Glyph width <output name="glyphWidthOut" aria-hidden="true">0.5</output>
           <input
             type="range"
-            name="glyphWidth"
+            id="pg-glyphWidth" name="glyphWidth"
             min="0.3"
             max="1"
             step="0.01"
             value="0.5"
           />
         </label>
-        <label>
-          Container width <output name="widthOut">480px</output>
+        <label for="pg-width">
+          Container width <output name="widthOut" aria-hidden="true">480px</output>
           <input
             type="range"
-            name="width"
+            id="pg-width" name="width"
             min="220"
             max="640"
             step="10"
@@ -58,25 +67,25 @@ import { withBase } from "#root/site.js";
 
       <fieldset>
         <legend>Elements</legend>
-        <label>
-          Avatar border radius <output name="avatarRadiusOut">50%</output>
-          <input type="range" name="avatarRadius" min="0" max="50" value="50" />
+        <label for="pg-avatarRadius">
+          Avatar border radius <output name="avatarRadiusOut" aria-hidden="true">50%</output>
+          <input type="range" id="pg-avatarRadius" name="avatarRadius" min="0" max="50" value="50" />
         </label>
-        <div class="pg__row" role="radiogroup" aria-label="Link mode">
-          <span>Link mode</span>
+        <fieldset class="pg__row">
+          <legend>Link mode</legend>
           <label><input type="radio" name="linkMode" value="auto" /> auto</label>
           <label
             ><input type="radio" name="linkMode" value="inline" checked /> inline</label
           >
-        </div>
+        </fieldset>
         <label class="pg__check">
           <input type="checkbox" name="interactive" /> Interactive link
         </label>
-        <div class="pg__row" role="radiogroup" aria-label="Direction">
-          <span>Direction</span>
+        <fieldset class="pg__row">
+          <legend>Direction</legend>
           <label><input type="radio" name="dir" value="ltr" checked /> LTR</label>
           <label><input type="radio" name="dir" value="rtl" /> RTL</label>
-        </div>
+        </fieldset>
       </fieldset>
 
       <fieldset>
@@ -88,22 +97,22 @@ import { withBase } from "#root/site.js";
           <label><input type="radio" name="animation" value="pulse" /> pulse</label>
           <label><input type="radio" name="animation" value="none" /> none</label>
         </div>
-        <label>
-          Duration <output name="durationOut">2s</output>
+        <label for="pg-duration">
+          Duration <output name="durationOut" aria-hidden="true">2s</output>
           <input
             type="range"
-            name="duration"
+            id="pg-duration" name="duration"
             min="0.5"
             max="5"
             step="0.1"
             value="2"
           />
         </label>
-        <label>
-          Background size <output name="bgSizeOut">300%</output>
+        <label for="pg-bgSize">
+          Background size <output name="bgSizeOut" aria-hidden="true">300%</output>
           <input
             type="range"
-            name="bgSize"
+            id="pg-bgSize" name="bgSize"
             min="100"
             max="600"
             step="25"
@@ -234,8 +243,21 @@ import { withBase } from "#root/site.js";
     gap: 0.25rem 0.75rem;
   }
 
-  .pg__row > span {
-    flex-basis: 100%;
+  /**
+   * The nested groups' legends read like the other controls' labels, not like
+   * the uppercase section titles
+   */
+  .pg__row > legend {
+    margin-bottom: 0.25rem;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  .pg__row > label {
+    display: block;
   }
 
   fieldset > .pg__check {

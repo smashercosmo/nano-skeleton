@@ -34,7 +34,7 @@ const toc = sections.map(({ id, label }) => ({ id, label }));
         <Toc items={toc} />
       </nav>
     </aside>
-    <main class="main">
+    <main class="main" id="main" tabindex="-1">
       <section class="hero">
         <h1>The perfect skeleton component</h1>
         <p>
@@ -126,7 +126,8 @@ const toc = sections.map(({ id, label }) => ({ id, label }));
 
   .hero h1 {
     margin: 0 0 1rem;
-    font-size: clamp(2rem, 6vw, 3rem);
+    /* The rem part keeps the heading growing when the page is zoomed */
+    font-size: clamp(2rem, 1.25rem + 3vw, 3rem);
     letter-spacing: -0.035em;
   }
 

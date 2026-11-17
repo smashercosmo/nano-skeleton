@@ -12,7 +12,7 @@ import { withBase } from "#root/site.js";
   title="Page not found · nano-skeleton"
   description="This page doesn't exist."
 >
-  <main class="not-found">
+  <main class="not-found" id="main" tabindex="-1">
     <h1>Page not found</h1>
     <p>
       There's nothing at this address. The docs are a single page, and the
@@ -34,7 +34,7 @@ import { withBase } from "#root/site.js";
 
   h1 {
     margin: 0 0 1rem;
-    font-size: clamp(2rem, 6vw, 2.75rem);
+    font-size: clamp(2rem, 1.25rem + 2.5vw, 2.75rem);
     letter-spacing: -0.035em;
   }
 
