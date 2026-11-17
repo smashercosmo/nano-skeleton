@@ -143,53 +143,181 @@ if (tocLinks.size > 0) {
 
 //region ------------- Code blocks -------------
 
-/** Timers that switch "Copied" back to "Copy", restarted on every click */
+/** Names of the code blocks' languages, for the buttons' and blocks' labels */
+const LANGUAGE_NAMES = new Map([
+  ["bash", "shell"],
+  ["css", "CSS"],
+  ["html", "HTML"],
+  ["js", "JavaScript"],
+  ["ts", "TypeScript"],
+  ["tsx", "TSX"],
+]);
+
+/** "HTML code" for a block with class="language-html", "code" otherwise */
+function codeName(code: Element) {
+  const language = /\blanguage-(?<language>[\w\-]+)/v.exec(code.className)
+    ?.groups?.["language"];
+  const name =
+    language === undefined ? undefined : LANGUAGE_NAMES.get(language);
+  return name === undefined ? "code" : `${name} code`;
+}
+
+/** Timers that clear the "Copied" message, restarted on every click */
 const resetTimers = new WeakMap<
   HTMLButtonElement,
   ReturnType<typeof setTimeout>
 >();
 
-async function copyCode(event: Event) {
-  const button = event.currentTarget;
-  if (!(button instanceof HTMLButtonElement)) {
-    return;
-  }
-  try {
-    await navigator.clipboard.writeText(
-      button.parentElement?.querySelector("code")?.textContent ?? "",
-    );
-    button.textContent = "Copied";
-  } catch {
-    /** No clipboard access, e.g. denied by the user */
-    button.textContent = "Copy failed";
-  }
-  button.dataset["copied"] = "";
-  globalThis.clearTimeout(resetTimers.get(button));
-  resetTimers.set(
-    button,
-    globalThis.setTimeout(() => {
-      button.textContent = "Copy";
-      delete button.dataset["copied"];
-    }, 1500),
-  );
+/**
+ * The last message announced. VoiceOver skips a message identical to the
+ * previous one, even if the region was emptied in between, so a repeated one
+ * gets a no-break space, which isn't read aloud
+ */
+let lastMessage = "";
+
+/** U+00A0 */
+const NO_BREAK_SPACE = String.fromCodePoint(160);
+
+/** Sets `data-copied` or `data-failed` on the button, or neither */
+function markResult(button: HTMLButtonElement, result?: "copied" | "failed") {
+  button.toggleAttribute("data-copied", result === "copied");
+  button.toggleAttribute("data-failed", result === "failed");
 }
 
 /**
- * The button goes into a wrapper next to the code block, not into the block
- * itself, which scrolls horizontally and would take the button with it
+ * Shows the result in the status element next to the button, which is also a
+ * live region, so sighted and screen reader users get the same message
  */
-for (const pre of document.querySelectorAll("pre:has(> code)")) {
+function reportCopy(
+  button: HTMLButtonElement,
+  status: HTMLElement,
+  ok: boolean,
+) {
+  globalThis.clearTimeout(resetTimers.get(button));
+  markResult(button, ok ? "copied" : "failed");
+
+  let message = ok ? "Copied" : "Copy failed";
+  if (message === lastMessage) {
+    message += NO_BREAK_SPACE;
+  }
+  lastMessage = message;
+  /** Emptied first, so the same message is announced again */
+  status.replaceChildren();
+  requestAnimationFrame(() => {
+    status.replaceChildren(message);
+  });
+
+  resetTimers.set(
+    button,
+    globalThis.setTimeout(() => {
+      markResult(button);
+      /** No stale "Copied" left for screen reader browse mode */
+      status.replaceChildren();
+    }, 2000),
+  );
+}
+
+async function copyCode(
+  code: Element,
+  button: HTMLButtonElement,
+  status: HTMLElement,
+) {
+  try {
+    await navigator.clipboard.writeText(code.textContent);
+    reportCopy(button, status, true);
+  } catch {
+    /** No clipboard access, e.g. denied by the user */
+    reportCopy(button, status, false);
+  }
+}
+
+/**
+ * A code block that scrolls horizontally becomes focusable, so keyboard users
+ * can scroll it, and a named region, so screen readers say what it is. One that
+ * fits isn't, so it doesn't add a stop to the tab order.
+ */
+function syncScrollable(pre: HTMLElement, name: string) {
+  const scrollable = pre.scrollWidth > pre.clientWidth;
+  if (scrollable) {
+    pre.setAttribute("tabindex", "0");
+    pre.setAttribute("role", "region");
+    pre.setAttribute("aria-label", name);
+  } else if (document.activeElement !== pre) {
+    /** A focused block keeps its tabindex, so it doesn't lose focus */
+    pre.removeAttribute("tabindex");
+    pre.removeAttribute("role");
+    pre.removeAttribute("aria-label");
+  }
+}
+
+/**
+ * Watches both the block and its code: the block changes size with the
+ * viewport, the code with its content, e.g. in the playground
+ */
+const scrollableBlocks = new ResizeObserver((entries) => {
+  const blocks = new Set<HTMLPreElement>();
+  for (const { target } of entries) {
+    const pre = target.closest("pre");
+    if (pre) {
+      blocks.add(pre);
+    }
+  }
+  for (const pre of blocks) {
+    const code = pre.querySelector(":scope > code");
+    if (code) {
+      syncScrollable(pre, codeName(code));
+    }
+  }
+});
+
+/**
+ * The button goes into a wrapper next to the code block, not into the block
+ * itself, which scrolls horizontally and would take the button with it.
+ */
+function addCopyButton(pre: HTMLElement, code: Element) {
   const wrapper = document.createElement("div");
   wrapper.className = "code-block";
+
+  const copy = document.createElement("span");
+  copy.className = "copy";
+
+  /**
+   * Visible text "Copy", plus the language for screen readers, so the buttons
+   * of different blocks can be told apart
+   */
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "copy";
-  button.textContent = "Copy";
-  button.addEventListener("click", (event) => {
-    void copyCode(event);
+  button.className = "copy-button";
+  const context = document.createElement("span");
+  context.className = "visually-hidden";
+  context.textContent = ` ${codeName(code)}`;
+  button.append("Copy", context);
+
+  /**
+   * Outside the button: a button's content is presentational, so a live region
+   * inside it isn't reliably announced
+   */
+  const status = document.createElement("span");
+  status.className = "copy-status";
+  status.setAttribute("role", "status");
+
+  button.addEventListener("click", () => {
+    void copyCode(code, button, status);
   });
+
+  copy.append(button, status);
   pre.before(wrapper);
-  wrapper.append(pre, button);
+  wrapper.append(pre, copy);
+
+  scrollableBlocks.observe(pre);
+  scrollableBlocks.observe(code);
+}
+
+for (const code of document.querySelectorAll("pre > code")) {
+  const pre = code.parentElement;
+  if (pre) {
+    addCopyButton(pre, code);
+  }
 }
 
 /**

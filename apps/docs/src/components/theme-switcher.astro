@@ -15,6 +15,31 @@ const options = ["auto", "light", "dark"] as const;
           autocomplete="off"
         />
         <span>{value}</span>
+        {
+          /**
+           * What "auto" currently resolves to: a sun or a moon, and the same
+           * in words for screen readers. CSS shows the one matching the
+           * system theme, display: none hides the other one from screen
+           * readers too
+           */
+          value === "auto" && (
+            <>
+              <span class="resolved resolved--light">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <circle cx="8" cy="8" r="3" />
+                  <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3" />
+                </svg>
+                <span class="visually-hidden">(currently light)</span>
+              </span>
+              <span class="resolved resolved--dark">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5Z" />
+                </svg>
+                <span class="visually-hidden">(currently dark)</span>
+              </span>
+            </>
+          )
+        }
       </label>
     ))
   }
@@ -29,12 +54,21 @@ const options = ["auto", "light", "dark"] as const;
    */
   (() => {
     const KEY = "__color_scheme__";
-    const THEMES = new Set(["light", "dark", "auto"]);
     const switcher = document.querySelector(".theme-switcher");
 
+    /** A stored value that isn't a pinned theme means "auto" */
+    function normalize(theme) {
+      return theme === "light" || theme === "dark" ? theme : "auto";
+    }
+
+    /** "Auto" is the default, so it's stored as no value at all */
     function save(theme) {
       try {
-        localStorage.setItem(KEY, THEMES.has(theme) ? theme : "auto");
+        if (normalize(theme) === "auto") {
+          localStorage.removeItem(KEY);
+        } else {
+          localStorage.setItem(KEY, theme);
+        }
       } catch {
         /* Storage is unavailable, the choice lasts until reload */
       }
@@ -42,10 +76,32 @@ const options = ["auto", "light", "dark"] as const;
 
     function load() {
       try {
-        const theme = localStorage.getItem(KEY);
-        return theme === "light" || theme === "dark" ? theme : "auto";
+        return normalize(localStorage.getItem(KEY));
       } catch {
         return "auto";
+      }
+    }
+
+    /**
+     * The browser UI color comes from <meta name="theme-color">, which only
+     * follows the system theme through its media queries. A pinned theme gives
+     * both of them its own color.
+     */
+    const themeColors = [
+      ...document.querySelectorAll('meta[name="theme-color"][media]'),
+    ].map((meta) => ({
+      meta,
+      scheme: meta.media.includes("dark") ? "dark" : "light",
+      color: meta.content,
+    }));
+
+    function colorOf(scheme) {
+      return themeColors.find((entry) => entry.scheme === scheme)?.color;
+    }
+
+    function syncThemeColor(theme) {
+      for (const { meta, scheme } of themeColors) {
+        meta.content = colorOf(theme === "auto" ? scheme : theme) ?? "";
       }
     }
 
@@ -54,6 +110,7 @@ const options = ["auto", "light", "dark"] as const;
       for (const input of switcher.querySelectorAll("input")) {
         input.checked = input.value === theme;
       }
+      syncThemeColor(theme);
     }
 
     /**
@@ -73,7 +130,10 @@ const options = ["auto", "light", "dark"] as const;
     }
 
     /** Updates the stored value when the user switches the theme */
-    switcher.addEventListener("change", (event) => save(event.target.value));
+    switcher.addEventListener("change", (event) => {
+      save(event.target.value);
+      syncThemeColor(normalize(event.target.value));
+    });
 
     forcedColors.addEventListener("change", syncForcedColors);
 
@@ -82,8 +142,9 @@ const options = ["auto", "light", "dark"] as const;
      * fires in the OTHER tabs, the switcher there has to be updated by hand.
      */
     globalThis.addEventListener("storage", (event) => {
-      if (event.key === KEY && THEMES.has(event.newValue)) {
-        select(event.newValue);
+      /** No key: the whole storage was cleared. No value: back to "auto" */
+      if (event.key === KEY || event.key === null) {
+        select(normalize(event.newValue));
       }
     });
 
@@ -123,6 +184,55 @@ const options = ["auto", "light", "dark"] as const;
   label:has(:checked) {
     background: var(--accent-soft);
     color: var(--accent);
+  }
+
+  .resolved {
+    display: inline-block;
+    margin-inline-start: 0.2em;
+    vertical-align: -0.1em;
+  }
+
+  .resolved svg {
+    display: block;
+    width: 0.9em;
+    height: 0.9em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  .resolved--dark svg {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .resolved--dark {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .resolved--light {
+      display: none;
+    }
+
+    .resolved--dark {
+      display: inline-block;
+    }
+  }
+
+  /**
+   * Without the icon on the narrowest screens, so the header's first row still
+   * fits on 360px wide ones. Screen readers still get the words
+   */
+  @media (max-width: 25rem) {
+    .resolved {
+      margin: 0;
+    }
+
+    .resolved svg {
+      display: none;
+    }
   }
 
   label:has(:focus-visible) {
