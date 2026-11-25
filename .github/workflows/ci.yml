@@ -13,5 +13,4 @@ jobs:
       contents: read
     uses: smashercosmo/actions/.github/workflows/ci.yml@04f838252f6ef4b869ae9e98d850ede141ca450a # v0.4.0
     with:
-      cache: true
       playwright-browsers: chromium webkit firefox
