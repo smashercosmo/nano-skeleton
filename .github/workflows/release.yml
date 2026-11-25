@@ -9,6 +9,11 @@ name: Release
 # by the next run. Running it manually (workflow_dispatch) without pending
 # intents always takes the release path, e.g. to retry a failed release
 #
+# Every run then deploys the docs site, apps/docs, to GitHub Pages, built from
+# the `v<version>` tag of the released version, so the docs always match npm.
+# Nothing is deployed while a version waits for its approval. The github-pages
+# environment has to allow deployments from main, where this workflow runs
+#
 # The npm trusted publisher of nano-skeleton names this file and the `release`
 # environment, which has the GitHub App's private key. The client ID is a
 # repository variable, as this job can't have an environment
@@ -23,57 +28,19 @@ jobs:
   release:
     # The most the jobs of the workflow can get. Each of them asks only for
     # what it needs: publishing the releases needs `contents: write`, staging
-    # on npm (OIDC) `id-token: write`
+    # on npm (OIDC) `id-token: write`, deploying the docs `pages: write` and
+    # `id-token: write`
     permissions:
       contents: write
       id-token: write
-    uses: smashercosmo/actions/.github/workflows/release.yml@04f838252f6ef4b869ae9e98d850ede141ca450a # v0.4.0
+      pages: write
+    uses: smashercosmo/actions/.github/workflows/release.yml@abdfa51294bf4b5da839716d05754ee0b86ed99e # v0.5.0
     with:
       app-client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
       npm: true
       playwright-browsers: chromium webkit firefox
+      # Builds nano-skeleton and the docs site that depends on it with
+      # `pnpm --filter docs... build`, and deploys apps/docs/dist
+      docs: true
     secrets:
       app-private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
-
-  # The releases are created with GITHUB_TOKEN, which doesn't trigger other
-  # workflows, so the docs can't be deployed `on: release`. Instead, every run
-  # deploys the docs of the released version: the commit of the `v<version>`
-  # tag of the version in packages/nano-skeleton/package.json. That tag only
-  # exists once the version is on npm, so the docs always match npm, and
-  # nothing is deployed while a version waits for its release
-  docs-version:
-    needs: release
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    outputs:
-      ref: ${{ steps.ref.outputs.ref }}
-    steps:
-      # Full history with tags, including a tag the release job just created
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
-      - id: ref
-        name: Find the tag of the released version
-        run: |
-          tag="v$(jq -r .version packages/nano-skeleton/package.json)"
-
-          if git rev-parse --quiet --verify "refs/tags/$tag" > /dev/null; then
-            echo "ref=refs/tags/$tag" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::$tag isn't released yet, so the docs aren't deployed"
-          fi
-
-  docs:
-    needs: docs-version
-    if: needs.docs-version.outputs.ref != ''
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    uses: $/.github/workflows/pages.yml
-    with:
-      ref: ${{ needs.docs-version.outputs.ref }}
