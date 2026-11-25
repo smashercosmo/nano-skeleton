@@ -11,7 +11,6 @@ jobs:
   ci:
     permissions:
       contents: read
-    uses: smashercosmo/actions/.github/workflows/ci.yml@d283dd6d6b3f5849dfbfea72da2a138dfefc326c # v0.3.0
+    uses: smashercosmo/actions/.github/workflows/ci.yml@04f838252f6ef4b869ae9e98d850ede141ca450a # v0.4.0
     with:
-      cache: true
       playwright-browsers: chromium webkit firefox

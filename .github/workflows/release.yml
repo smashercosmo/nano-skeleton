@@ -2,11 +2,12 @@ name: Release
 
 # The reusable release workflow of smashercosmo/actions. Every push to main
 # either opens (or updates) the release PR from the pending change intents, or,
-# right after the release PR was merged, runs CI on the commit, stages the
-# packages on npm and drafts their GitHub releases. Approve the staged versions
-# with `pnpm stage approve` (2FA), then publish the drafts, which creates the
-# tags. Running it manually (workflow_dispatch) without pending intents always
-# takes the release path, e.g. to retry a failed release
+# right after the release PR was merged, runs CI on the commit and stages the
+# packages on npm. Approve the staged versions with `pnpm stage approve` (2FA):
+# the run of the merge waits up to 10 minutes for that, then publishes the
+# GitHub releases, which creates the tags. A version approved later is released
+# by the next run. Running it manually (workflow_dispatch) without pending
+# intents always takes the release path, e.g. to retry a failed release
 #
 # The npm trusted publisher of nano-skeleton names this file and the `release`
 # environment, which has the GitHub App's private key. The client ID is a
@@ -21,16 +22,58 @@ permissions: {}
 jobs:
   release:
     # The most the jobs of the workflow can get. Each of them asks only for
-    # what it needs: drafting the releases needs `contents: write`, staging on
-    # npm (OIDC) `id-token: write`
+    # what it needs: publishing the releases needs `contents: write`, staging
+    # on npm (OIDC) `id-token: write`
     permissions:
       contents: write
       id-token: write
-    uses: smashercosmo/actions/.github/workflows/release.yml@d283dd6d6b3f5849dfbfea72da2a138dfefc326c # v0.3.0
+    uses: smashercosmo/actions/.github/workflows/release.yml@04f838252f6ef4b869ae9e98d850ede141ca450a # v0.4.0
     with:
       app-client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
       npm: true
-      cache: true
       playwright-browsers: chromium webkit firefox
     secrets:
       app-private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+  # The releases are created with GITHUB_TOKEN, which doesn't trigger other
+  # workflows, so the docs can't be deployed `on: release`. Instead, every run
+  # deploys the docs of the released version: the commit of the `v<version>`
+  # tag of the version in packages/nano-skeleton/package.json. That tag only
+  # exists once the version is on npm, so the docs always match npm, and
+  # nothing is deployed while a version waits for its release
+  docs-version:
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      ref: ${{ steps.ref.outputs.ref }}
+    steps:
+      # Full history with tags, including a tag the release job just created
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - id: ref
+        name: Find the tag of the released version
+        run: |
+          tag="v$(jq -r .version packages/nano-skeleton/package.json)"
+
+          if git rev-parse --quiet --verify "refs/tags/$tag" > /dev/null; then
+            echo "ref=refs/tags/$tag" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::$tag isn't released yet, so the docs aren't deployed"
+          fi
+
+  docs:
+    needs: docs-version
+    if: needs.docs-version.outputs.ref != ''
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: $/.github/workflows/pages.yml
+    with:
+      ref: ${{ needs.docs-version.outputs.ref }}

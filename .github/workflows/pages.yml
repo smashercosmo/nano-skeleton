@@ -1,22 +1,23 @@
 name: Deploy docs to GitHub Pages
 
-# Deploys when a release is published, so the docs always match the version
-# on npm. The release workflow creates draft releases, and publishing a draft
-# (by a person, not a token) triggers this. Running it manually redeploys the
-# checked out ref, e.g. a release tag
+# Builds the docs site, apps/docs, and deploys it to GitHub Pages. The release
+# workflow calls this after every run with the tag of the released version, so
+# the docs always match the version on npm. Running it manually deploys the
+# branch or tag it runs from, e.g. a release tag
 #
-# The github-pages environment must allow deployments from release tags:
+# The github-pages environment must allow deployments from main, where the
+# release workflow runs, and from release tags, for manual runs:
 # Settings → Environments → github-pages → Deployment branches and tags
 on:
-  release:
-    types: [published]
+  workflow_call:
+    inputs:
+      ref:
+        description: Branch or tag to deploy, e.g. refs/tags/v1.0.0
+        type: string
+        required: true
   workflow_dispatch:
 
 permissions: {}
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   # Runs dependency code during install and build, so it only gets read access
@@ -27,15 +28,15 @@ jobs:
       contents: read
       pages: read
     steps:
+      # Manual runs have no `ref` input and deploy the ref they run from
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.ref || github.ref }}
 
       # Installs pnpm from "packageManager" and Node from "devEngines.runtime"
-      # in package.json, then runs `pnpm install --frozen-lockfile`. Without the
-      # cache the other workflows use: what is built here gets published, and a
-      # cache is one more way for something foreign to get into it
-      - uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
+      # in package.json, then runs `pnpm install --frozen-lockfile`
+      - uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3.2.0
         with:
           require-lockfile: true
 
@@ -56,6 +57,11 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    # One deployment at a time. Only the deployments wait for each other, the
+    # builds can run side by side
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
